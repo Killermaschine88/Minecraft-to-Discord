@@ -1,3 +1,4 @@
 # Minecraft-to-Discord
 
-## Rename the example.env to .env and place in the missing Values.
+## Replacing the missing values
+Rename `example.env` -> `.env` and replace the values inside with the needed values.
