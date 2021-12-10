@@ -15,6 +15,22 @@ module.exports = {
             type: "STRING",
             required: true,
           },
+          {
+            name: "first-person",
+            description: "if it should be first person view",
+            type: "STRING",
+            required: true,
+            choices: [
+              {
+                name: "yes",
+                value: "true"
+              },
+              {
+                name: "no",
+                value: "false"
+              }
+            ]
+          }
         ],
       },
     ]
