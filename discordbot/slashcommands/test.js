@@ -1,11 +1,14 @@
 const Discord = require('discord.js')
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
-
+const { pathfinder, Movements } = require('mineflayer-pathfinder')
+const { GoalBlock } = require('mineflayer-pathfinder').goals
 
 module.exports = {
-  name: "test",
+  name: "start-bot",
   async execute(interaction) {
+
+    const ignored_usernames = ['UPDATE', 'REAKTOREN']
 
     const menu = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
 
@@ -36,6 +39,9 @@ module.exports = {
     })
 
     bot.on("chat", async (username, message) => {
+
+      if(ignored_usernames.includes(username)) return
+
       console.log(`${username} said ${message}`)
     })
 
@@ -66,10 +72,54 @@ module.exports = {
       choosenBoolean = false
     }
 
+    let triggered;
+
     bot.once("spawn", async () => {
 
       mineflayerViewer(bot, { port: 3007, firstPerson: choosenBoolean })
       await interaction.editReply({ content: "Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)", components: [row1, row2, row3] })
+
+      //click movement
+      if (interaction.options.getString('allow-click-movement') === 'yes' && !triggered) {
+
+        triggered = true
+        bot.loadPlugin(pathfinder)
+
+        bot.on('path_update', (r) => {
+          const nodesPerTick = (r.visitedNodes * 50 / r.time).toFixed(2)
+          console.log(`I can get there in ${r.path.length} moves. Computation took ${r.time.toFixed(2)} ms (${nodesPerTick} nodes/tick). ${r.status}`)
+          const path = [bot.entity.position.offset(0, 0.5, 0)]
+          for (const node of r.path) {
+            path.push({ x: node.x, y: node.y + 0.5, z: node.z })
+          }
+          bot.viewer.drawLine('path', path, 0xff00ff)
+        })
+
+        const mcData = require('minecraft-data')(bot.version)
+        const defaultMove = new Movements(bot, mcData)
+
+        bot.viewer.on('blockClicked', (block, face, button) => {
+          
+          /**
+           * change the state to whatever you want to use
+           * 
+           * 0 = Left Click
+           * 1 = Middle Click
+           * 2 = Right Click
+           * 3 = First Mouse Button
+           * 4 = Second Mouse Button
+           */
+          const button_state = 4;
+
+          if (button !== button_state) return 
+
+          const p = block.position.offset(0, 1, 0)
+
+          bot.pathfinder.setMovements(defaultMove)
+          bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
+        })
+      }
+
     })
 
     const collector = menu.createMessageComponentCollector({

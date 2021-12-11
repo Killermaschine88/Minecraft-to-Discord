@@ -6,7 +6,7 @@ module.exports = {
 
     const data = [
       {
-        name: "test",
+        name: "start-bot",
         description: "test",
         options: [
           {
@@ -30,7 +30,23 @@ module.exports = {
                 value: "false"
               }
             ]
-          }
+          },
+          {
+            name: "allow-click-movement",
+            description: "if you can middle click to move",
+            type: "STRING",
+            required: true,
+            choices: [
+              {
+                name: "yes",
+                value: "yes"
+              },
+              {
+                name: "no",
+                value: "no"
+              }
+            ]
+          },
         ],
       },
       {
@@ -39,7 +55,7 @@ module.exports = {
       }
     ]
 
-    //client.guilds.cache.get('918627796132179988')?.commands.set(data);
+    // client.guilds.cache.get('918627796132179988')?.commands.set(data);
 
   }
 }
