@@ -10,7 +10,7 @@ module.exports = {
     const menu = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
 
     const bot = mineflayer.createBot({
-      host: 'hypixel.net',
+      host: interaction.options.getString('ip'),
       username: process.env.MINECRAFT_EMAIL,
       password: process.env.MINECRAFT_PASSWORD,
       version: "1.8.9",
@@ -116,6 +116,8 @@ module.exports = {
           .then(collected => {
             let content = collected.values()
             content = content.next().value.content
+            let message = collected.values()
+            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
             bot.chat(content)
           })
           .catch(collected => interaction.editReply('Nothing was said within 30 seconds'));
