@@ -124,7 +124,7 @@ module.exports = {
           //console.log(`I can get there in ${r.path.length} moves. Computation took ${r.time.toFixed(2)} ms (${nodesPerTick} nodes/tick). ${r.status}`)
           if(r.status === "success") {
 
-            embed.setDescription("Done moving via Website Click")
+            embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **move via browser** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
               interaction.editReply({embeds: [embed]})
           }
           const path = [bot.entity.position.offset(0, 0.5, 0)]
@@ -176,7 +176,7 @@ module.exports = {
 
       if (i.customId === "kill") {
         embed.setColor('RED')
-        interaction.editReply({ content: "Stopped", components: [] })
+        interaction.editReply({ content: "Stopped", embeds: [embed], components: [] })
         await bot.viewer.close()
         bot.end()
         return collector.stop()
@@ -221,7 +221,7 @@ module.exports = {
         bot.look(bot.entity.yaw-(3.14/4), 0, false)
       }
 
-      embed.setDescription(`Action **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
+      embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
       
       await interaction.editReply({embeds: [embed]})
 
