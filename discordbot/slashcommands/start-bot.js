@@ -3,10 +3,15 @@ const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 const { pathfinder, Movements } = require('mineflayer-pathfinder')
 const { GoalBlock } = require('mineflayer-pathfinder').goals
+const { dig, onDiggingCompleted, renderInventory } = require('../functions/func.js')
 
 module.exports = {
   name: "start-bot",
   async execute(interaction) {
+
+    const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
+    
+    if(hypixel_ip.includes(interaction.options.getString('ip'))) return interaction.editReply('no hypixel')
 
     const message_ignore_words = ['UPDATE', 'REAKTOREN', 'CITYBUILD', 'WARTELOBBY', 'Defense', '', 'Mana']
 
@@ -39,6 +44,7 @@ module.exports = {
     //General Events
     bot.on("login", () => {
       console.log({ login: true })
+      //console.log(bot)
     })
 
     bot.on("kicked", (reason, loggedIn) => {
@@ -81,11 +87,13 @@ module.exports = {
 
     const mine_button = new Discord.MessageButton().setEmoji('852069714577719306').setCustomId('mine').setStyle('SECONDARY')
 
+    const turn_button = new Discord.MessageButton().setEmoji('🔄').setCustomId('turn').setStyle('SECONDARY')
+
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(message_button, mine_button)
+    const row3 = new Discord.MessageActionRow().addComponents().addComponents(message_button, mine_button, turn_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -95,11 +103,15 @@ module.exports = {
     }
 
     let triggered;
+    const embed = new Discord.MessageEmbed()
+    .setTitle(`Online on ${interaction.options.getString('ip')}`)
+    .setColor('GREEN')
+    .setDescription("Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)")
 
     bot.once("spawn", async () => {
 
       mineflayerViewer(bot, { port: 3007, firstPerson: choosenBoolean })
-      await interaction.editReply({ content: "Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)", components: [row1, row2, row3] })
+      await interaction.editReply({ embeds: [embed], components: [row1, row2, row3] })
 
       //click movement
       if (interaction.options.getString('allow-click-movement') && !triggered) {
@@ -111,7 +123,9 @@ module.exports = {
           const nodesPerTick = (r.visitedNodes * 50 / r.time).toFixed(2)
           //console.log(`I can get there in ${r.path.length} moves. Computation took ${r.time.toFixed(2)} ms (${nodesPerTick} nodes/tick). ${r.status}`)
           if(r.status === "success") {
-            interaction.editReply("Done moving via Button Click")
+
+            embed.setDescription("Done moving via Website Click")
+              interaction.editReply({embeds: [embed]})
           }
           const path = [bot.entity.position.offset(0, 0.5, 0)]
           for (const node of r.path) {
@@ -161,7 +175,7 @@ module.exports = {
       if (i.user.id !== interaction.user.id) return
 
       if (i.customId === "kill") {
-        interaction.editReply({ content: "Stopped", components: [] })
+        interaction.editReply({ content: "Stopped", embeds: [], components: [] })
         await bot.viewer.close()
         bot.end()
         return collector.stop()
@@ -185,7 +199,8 @@ module.exports = {
         //saying message input from user
         const filter = m => m.author.id === interaction.user.id;
 
-        interaction.editReply('Say your message/command to send')
+        embed.setDescription('Command / Message to execute / send.')
+        interaction.editReply({embeds: [embed]})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
@@ -195,12 +210,19 @@ module.exports = {
             interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
             bot.chat(content)
           })
-          .catch(collected => interaction.editReply('Nothing was said within 30 seconds'));
+          .catch(collected => {
+            embed.setDescription('Nothing said to execute/send within 30 Seconds')
+            interaction.editReply({embeds: [embed]})
+          });
       } else if(i.customId === 'mine') {
         dig(bot, interaction)
+      } else if(i.customId === "turn") {
+        bot.look(bot.entity.yaw-(3.14/4), 0, false)
       }
 
-      await interaction.editReply({ content: `Action ${i.customId} done.` })
+      embed.setDescription(`Action **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot)}`)
+      
+      await interaction.editReply({embeds: [embed]})
 
     })
 
@@ -211,19 +233,4 @@ const sleep = async (ms) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
-}
-
-function dig (bot, interaction) {
-  let target
-  if (bot.targetDigBlock) {
-    console.log(`already digging ${bot.targetDigBlock.name}`)
-  } else {
-    target = bot.blockAt(bot.entity.position.offset(+1, 0, 0)) //going off your lower body aka feet
-    if (target && bot.canDigBlock(target)) {
-      interaction.editReply(`starting to dig ${target.name}`)
-      bot.dig(target)
-    } else {
-      console.log('cannot dig')
-    }
-  }
 }
