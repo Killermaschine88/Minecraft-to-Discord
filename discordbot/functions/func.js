@@ -1,4 +1,4 @@
-const emojis = require('../constants/emojis.js')
+const emojis = require('../constants/emojis.json')
 
 function dig (bot, interaction) {
   let target
@@ -34,13 +34,14 @@ function renderInventory(bot) {
   let i = 0
 
   for(const item of bot.inventory.slots) {
+    console.log(item)
     if(!item) {
       str += '<:inv_slot:919349781594247188>'
     } else if(emojis[snakeFormatter(item.displayName)]) {
       str += emojis[snakeFormatter(item.displayName)].formatted
     } else {
       //item.name for item_name_format
-      str += '👍'
+      str += '<:missing_texture:919358315421663302>'
     }
     
     i++
