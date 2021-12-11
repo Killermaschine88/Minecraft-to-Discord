@@ -32,7 +32,7 @@ module.exports = {
     })
 
     bot.on("message", async (message) => {
-      console.log({message: message})
+      //console.log({message: message})
     })
 
     bot.on("chat", async (username, message) => {
@@ -113,7 +113,11 @@ module.exports = {
         interaction.editReply('Say your message/command to send')
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
-          .then(collected => console.log(collected))
+          .then(collected => {
+            let content = collected.values()
+            content = content.next().value.content
+            bot.chat(content)
+          })
           .catch(collected => interaction.editReply('Nothing was said within 30 seconds'));
       }
 
