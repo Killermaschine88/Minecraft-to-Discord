@@ -8,7 +8,7 @@ module.exports = {
   name: "start-bot",
   async execute(interaction) {
 
-    const ignored_usernames = ['UPDATE', 'REAKTOREN']
+    const message_ignore_words = ['UPDATE', 'REAKTOREN', 'CITYBUILD', 'WARTELOBBY', 'Defense', '', 'Mana']
 
     const menu = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
 
@@ -19,8 +19,24 @@ module.exports = {
       version: "1.8.9",
       viewDistance: 'tiny',
       colorsEnabled: false,
+      skinParts: {
+        showJacket: false,
+        showHat: false,
+        showRightPants: false,
+        showLeftPants: false,
+        showLeftSleeve: false,
+        showRightSleeve: false
+      },
     })
 
+    //Hypixel Limbo Fix
+    bot._client.on('transaction', function (packet) {
+  packet.accepted = true
+  bot._client.write('transaction', packet)
+}) 
+
+
+    //General Events
     bot.on("login", () => {
       console.log({ login: true })
     })
@@ -35,12 +51,16 @@ module.exports = {
     })
 
     bot.on("message", async (message) => {
-      //console.log({message: message})
+
+      for(const word of message_ignore_words) {
+        if(message.text.includes(word)) return
+      }
+      
+      console.log({message: message})
     })
 
     bot.on("chat", async (username, message) => {
-
-      if(ignored_usernames.includes(username)) return
+   if(message_ignore_words.includes(username)) return
 
       console.log(`${username} said ${message}`)
     })
@@ -89,7 +109,10 @@ module.exports = {
 
         bot.on('path_update', (r) => {
           const nodesPerTick = (r.visitedNodes * 50 / r.time).toFixed(2)
-          console.log(`I can get there in ${r.path.length} moves. Computation took ${r.time.toFixed(2)} ms (${nodesPerTick} nodes/tick). ${r.status}`)
+          //console.log(`I can get there in ${r.path.length} moves. Computation took ${r.time.toFixed(2)} ms (${nodesPerTick} nodes/tick). ${r.status}`)
+          if(r.status === "success") {
+            interaction.editReply("Done moving via Button Click")
+          }
           const path = [bot.entity.position.offset(0, 0.5, 0)]
           for (const node of r.path) {
             path.push({ x: node.x, y: node.y + 0.5, z: node.z })
@@ -105,13 +128,13 @@ module.exports = {
           /**
            * change the state to whatever you want to use
            * 
-           * 0 = Left Click
+           * 0 = Left Click = Mobile Click
            * 1 = Middle Click
            * 2 = Right Click
            * 3 = First Mouse Button
            * 4 = Second Mouse Button
            */
-          const button_state = 4;
+          const button_state = 0;
 
           if (button !== button_state) return 
 
@@ -174,7 +197,7 @@ module.exports = {
           })
           .catch(collected => interaction.editReply('Nothing was said within 30 seconds'));
       } else if(i.customId === 'mine') {
-        dig(bot)
+        dig(bot, interaction)
       }
 
       await interaction.editReply({ content: `Action ${i.customId} done.` })
@@ -190,14 +213,14 @@ const sleep = async (ms) => {
   });
 }
 
-function dig (bot) {
+function dig (bot, interaction) {
   let target
   if (bot.targetDigBlock) {
     console.log(`already digging ${bot.targetDigBlock.name}`)
   } else {
-    target = bot.blockAt(bot.entity.position.offset(0, -1, 0))
+    target = bot.blockAt(bot.entity.position.offset(+1, 0, 0)) //going off your lower body aka feet
     if (target && bot.canDigBlock(target)) {
-      console.log(`starting to dig ${target.name}`)
+      interaction.editReply(`starting to dig ${target.name}`)
       bot.dig(target)
     } else {
       console.log('cannot dig')
