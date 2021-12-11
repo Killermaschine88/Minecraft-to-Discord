@@ -1,14 +1,15 @@
+require('dotenv').config()
 //Imports
 const Discord = require('discord.js')
 const fs = require('fs')
 
 //Discord Client
-const client = new Discord.Client({ intents: [ 'GUILDS' ]})
+const client = new Discord.Client({ intents: [ 'GUILDS', 'GUILD_MESSAGES' ]})
 
 client.slashcommands = new Discord.Collection()
 
 //Login
-client.login(process.env['discord-token'])
+client.login(process.env.DISCORD_TOKEN)
 
 //Event Handler
 const eventFiles = fs.readdirSync('./discordbot/events').filter((file) => file.endsWith('.js'));
@@ -31,3 +32,4 @@ for (const file of slashcommandFolders) {
 }
 
 //Debugging
+//client.on('debug', console.log)

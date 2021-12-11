@@ -33,9 +33,13 @@ module.exports = {
           }
         ],
       },
+      {
+        name: "test2",
+        description: "test2"
+      }
     ]
 
     //client.guilds.cache.get('918627796132179988')?.commands.set(data);
-    
+
   }
 }

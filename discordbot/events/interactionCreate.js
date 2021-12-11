@@ -5,15 +5,24 @@ module.exports = {
   async execute(interaction) {
 
     if(!interaction.isCommand()) return
-
-    await interaction.deferReply()
+    //console.log(interaction)
+    if(!interaction.client.slashcommands.get(interaction.commandName)) return
+    if(!interaction) return
 
     try {
-      interaction.client.slashcommands.get(interaction.commandName).execute(interaction)
+    await interaction.deferReply()
+    } catch (e) {
+      return
+    }
+
+    try {
+      await interaction.client.slashcommands.get(interaction.commandName).execute(interaction)
       
     } catch (err) {
 
-      return interaction.editReply({ content: "Error!" })
+      console.error(err)
+
+      //return await interaction.followUp({ content: "Error!" })
       
     }
   }
