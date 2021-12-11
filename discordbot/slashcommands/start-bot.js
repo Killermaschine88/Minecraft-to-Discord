@@ -59,11 +59,13 @@ module.exports = {
 
     const message_button = new Discord.MessageButton().setEmoji('📢').setCustomId('message').setStyle('SECONDARY')
 
+    const mine_button = new Discord.MessageButton().setEmoji('852069714577719306').setCustomId('mine').setStyle('SECONDARY')
+
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(message_button)
+    const row3 = new Discord.MessageActionRow().addComponents().addComponents(message_button, mine_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -80,7 +82,7 @@ module.exports = {
       await interaction.editReply({ content: "Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)", components: [row1, row2, row3] })
 
       //click movement
-      if (!interaction.options.getString('allow-click-movement') && !triggered) {
+      if (interaction.options.getString('allow-click-movement') && !triggered) {
 
         triggered = true
         bot.loadPlugin(pathfinder)
@@ -171,6 +173,8 @@ module.exports = {
             bot.chat(content)
           })
           .catch(collected => interaction.editReply('Nothing was said within 30 seconds'));
+      } else if(i.customId === 'mine') {
+        dig(bot)
       }
 
       await interaction.editReply({ content: `Action ${i.customId} done.` })
@@ -184,4 +188,19 @@ const sleep = async (ms) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function dig (bot) {
+  let target
+  if (bot.targetDigBlock) {
+    console.log(`already digging ${bot.targetDigBlock.name}`)
+  } else {
+    target = bot.blockAt(bot.entity.position.offset(0, -1, 0))
+    if (target && bot.canDigBlock(target)) {
+      console.log(`starting to dig ${target.name}`)
+      bot.dig(target)
+    } else {
+      console.log('cannot dig')
+    }
+  }
 }
