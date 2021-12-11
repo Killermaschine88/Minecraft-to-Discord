@@ -1,3 +1,5 @@
+const emojis = require('../constants/emojis.js')
+
 function dig (bot, interaction) {
   let target
   if (bot.targetDigBlock) {
@@ -21,6 +23,12 @@ function onDiggingCompleted (err, interaction) {
     interaction.editReply(`finished digging ${target.name}`)
   }
 
+function snakeFormatter(words) {
+	let separateWord = words.toUpperCase().split(' ');
+	
+	return separateWord.join('_');
+}
+
 function renderInventory(bot) {
   let str = ''
   let i = 0
@@ -28,6 +36,8 @@ function renderInventory(bot) {
   for(const item of bot.inventory.slots) {
     if(!item) {
       str += '<:inv_slot:919349781594247188>'
+    } else if(emojis[snakeFormatter(item.displayName)]) {
+      str += emojis[snakeFormatter(item.displayName)].formatted
     } else {
       //item.name for item_name_format
       str += '👍'
