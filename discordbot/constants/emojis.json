@@ -1,4 +1,10 @@
 {
+  "SKULL": {
+    "formatted": "<:skull:919364099022925896>"
+  },
+  "WRITTEN_BOOK": {
+    "formatted": "<:written_book:919365554932944916>"
+  },
 	"EPOCH_CAKE_AQUA": {
 		"id": "901862707798618132",
 		"name": "item_0",

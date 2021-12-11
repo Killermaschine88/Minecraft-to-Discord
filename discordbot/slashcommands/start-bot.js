@@ -175,7 +175,8 @@ module.exports = {
       if (i.user.id !== interaction.user.id) return
 
       if (i.customId === "kill") {
-        interaction.editReply({ content: "Stopped", embeds: [], components: [] })
+        embed.setColor('RED')
+        interaction.editReply({ content: "Stopped", components: [] })
         await bot.viewer.close()
         bot.end()
         return collector.stop()
@@ -220,7 +221,7 @@ module.exports = {
         bot.look(bot.entity.yaw-(3.14/4), 0, false)
       }
 
-      embed.setDescription(`Action **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot)}`)
+      embed.setDescription(`Action **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
       
       await interaction.editReply({embeds: [embed]})
 
