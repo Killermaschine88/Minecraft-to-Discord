@@ -35,16 +35,12 @@ module.exports = {
             name: "allow-click-movement",
             description: "if you can middle click to move",
             type: "STRING",
-            required: true,
+            required: false,
             choices: [
               {
                 name: "yes",
                 value: "yes"
               },
-              {
-                name: "no",
-                value: "no"
-              }
             ]
           },
         ],

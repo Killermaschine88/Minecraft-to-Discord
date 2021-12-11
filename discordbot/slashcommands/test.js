@@ -80,7 +80,7 @@ module.exports = {
       await interaction.editReply({ content: "Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)", components: [row1, row2, row3] })
 
       //click movement
-      if (interaction.options.getString('allow-click-movement') === 'yes' && !triggered) {
+      if (!interaction.options.getString('allow-click-movement') && !triggered) {
 
         triggered = true
         bot.loadPlugin(pathfinder)
