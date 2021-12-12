@@ -81,7 +81,7 @@ module.exports = {
 
     bot.on("windowOpen", async (window) => {
       //console.log(window.slots)
-      embed.setDescription(`**NPC Inventory**\n\n${renderInventory(window, interaction, true)}`)
+      embed.setDescription(`**NPC Inventory**\n${renderInventory(window, interaction)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction)}`)
 
       interaction.editReply({embeds: [embed]})
     })
@@ -271,7 +271,7 @@ module.exports = {
       const no_default_edit = ["test"]
 
       if(!no_default_edit.includes(i.customId)) {
-      embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+      embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction)}`)
       
       await interaction.editReply({embeds: [embed]})
       }

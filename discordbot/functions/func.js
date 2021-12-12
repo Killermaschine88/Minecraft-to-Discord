@@ -39,6 +39,12 @@ function snakeFormatter(words, state) {
     return "INK_SACK:8" //Grey Dye
   } else if(words.toLowerCase().includes('shovel')) {
     return "SNOW_SHOVEL"
+  } else if(words.toLowerCase() ==="carrot") {
+    return "CARROT_ITEM"
+  } else if(words.toLowerCase() === "potato") {
+    return "POTATO_ITEM"
+  } else if(words.toLowerCase() === "sugar canes") {
+    return "SUGAR_CANE"
   }
 
 
@@ -51,20 +57,13 @@ function snakeFormatter(words, state) {
 	return separateWord.join('_');
 }
 
-function renderInventory(bot, interaction, npc) {
+function renderInventory(bot, interaction) {
   let str = ''
   let i = 0
   let max = 0
-  let maxRow = 0
-  let maxShown = 0
+  const maxRow = 9
+  const maxShown = 45
   //console.log(bot.slots)
-  if(npc) {
-    maxRow = 10
-    maxShown = 54
-  } else {
-    maxRow = 9
-    maxShown = 45
-  }
 
   if(!bot.slots) return 'No Inventory'
 
@@ -93,11 +92,13 @@ function renderInventory(bot, interaction, npc) {
     if(i === maxRow) {
       str += '\n'
       i = 0
-    } else if(max === maxShown) {
+    }
+    
+    if(max === maxShown) {
       break;
     }
   }
-  console.log(str)
+  //console.log(str)
   return str
 }
 
