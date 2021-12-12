@@ -91,11 +91,11 @@ module.exports = {
 
     const turn_button = new Discord.MessageButton().setEmoji('🔄').setCustomId('turn').setStyle('SECONDARY')
 
-    const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button)
+    const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button)
 
-    const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button)
+    const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(message_button, mine_button, turn_button)
+    const row3 = new Discord.MessageActionRow().addComponents().addComponents(mine_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -114,6 +114,8 @@ module.exports = {
 
       mineflayerViewer(bot, { port: 3007, firstPerson: choosenBoolean })
       await interaction.editReply({ embeds: [embed], components: [row1, row2, row3] })
+      
+      pingUser(interaction)
 
       //click movement
       if (interaction.options.getString('allow-click-movement') && !triggered) {
@@ -236,4 +238,12 @@ const sleep = async (ms) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function pingUser(interaction) {
+  interaction.followUp({content: `<@${interaction.user.id}>`}).then(msg => {
+    setTimeout(() => {
+      msg.delete()
+    }, 5000)
+  })
 }
