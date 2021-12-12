@@ -57,17 +57,31 @@ function snakeFormatter(words, state) {
 	return separateWord.join('_');
 }
 
-function renderInventory(bot, interaction) {
+function renderInventory(bot, interaction, npc) {
   let str = ''
   let i = 0
+  let j = 0
   let max = 0
   const maxRow = 9
-  const maxShown = 45
+  let maxShown = 0
   //console.log(bot.slots)
 
   if(!bot.slots) return 'No Inventory'
 
+
+  if(bot.slots.length === 45) maxShown = 45 //Player Inventory
+  else if(bot.slots.length === 90) maxShown = 54 //NPC Big Inventory
+  else maxShown = 36
+
+  //console.log(bot.slots.length)
+  //console.log(maxShown)
+
   for(const item of bot.slots) {
+    if(j < 9 && !npc) {
+      //console.log("skipped")
+      j++
+      continue
+    }
     //if(item) console.log(item)
     if(!item) {
       str += '<:inv_slot:919349781594247188>'
@@ -95,6 +109,7 @@ function renderInventory(bot, interaction) {
     }
     
     if(max === maxShown) {
+      //console.log("got bigger")
       break;
     }
   }
