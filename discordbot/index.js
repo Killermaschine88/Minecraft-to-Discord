@@ -32,4 +32,6 @@ for (const file of slashcommandFolders) {
 }
 
 //Debugging
+client.options.http.api = 'https://discordapp.com/api'
+
 //client.on('debug', console.log)

@@ -25,6 +25,8 @@ function snakeFormatter(words, state) {
   //PRE FILTERING
   if(words.toLowerCase().includes('dye')) {
     return "INK_SACK:8" //Grey Dye
+  } else if(words.toLowerCase().includes('shovel')) {
+    return "SNOW_SHOVEL"
   }
 
 
