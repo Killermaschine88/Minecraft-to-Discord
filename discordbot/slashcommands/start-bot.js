@@ -54,12 +54,14 @@ module.exports = {
 
     bot.on("error", (err) => {
       console.log({ error: err })
+      return interaction.editReply("Cant connect to Server or invalid IP.")
+      bot.end()
     })
 
     bot.on("message", async (message) => {
 
       for(const word of message_ignore_words) {
-        if(message.text.includes(word)) return
+        if(message?.text.includes(word)) return
       }
       
       console.log({message: message})
@@ -223,7 +225,7 @@ module.exports = {
 
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
       
-      await interaction.editReply({embeds: [embed]})
+      await interaction.editReply({embeds: [embed], content: null})
 
     })
 
