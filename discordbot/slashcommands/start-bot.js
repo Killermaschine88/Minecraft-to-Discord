@@ -3,17 +3,17 @@ const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 const { pathfinder, Movements } = require('mineflayer-pathfinder')
 const { GoalBlock } = require('mineflayer-pathfinder').goals
-const { dig, onDiggingCompleted, renderInventory } = require('../functions/func.js')
+const { dig, onDiggingCompleted, renderInventory, parseMessage } = require('../functions/func.js')
+const toolPlugin = require('mineflayer-tool').plugin
 
 module.exports = {
   name: "start-bot",
   async execute(interaction) {
 
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
+    let editDisabled = false
     
-    if(hypixel_ip.includes(interaction.options.getString('ip'))) return interaction.editReply('no hypixel')
-
-    const message_ignore_words = ['UPDATE', 'REAKTOREN', 'CITYBUILD', 'WARTELOBBY', 'Defense', '', 'Mana']
+    if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
     const menu = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
 
@@ -33,6 +33,14 @@ module.exports = {
         showRightSleeve: false
       },
     })
+
+    const embed = new Discord.MessageEmbed()
+    .setTitle(`Online on ${interaction.options.getString('ip')}`)
+    .setColor('GREEN')
+    .setDescription("Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)")
+
+    //Load useful Plugins
+    bot.loadPlugin(toolPlugin)
 
     //Hypixel Limbo Fix
     bot._client.on('transaction', function (packet) {
@@ -59,18 +67,23 @@ module.exports = {
     })
 
     bot.on("message", async (message) => {
+      const msg = parseMessage(message)
 
-      for(const word of message_ignore_words) {
-        if(message?.text.includes(word)) return
-      }
-      
-      console.log({message: message})
+      //console.log({msg: msg})
     })
 
     bot.on("chat", async (username, message) => {
-   if(message_ignore_words.includes(username)) return
 
-      console.log(`${username} said ${message}`)
+      const msg = parseMessage(message)
+
+      //console.log(`${username} said ${msg}`)
+    })
+
+    bot.on("windowOpen", async (window) => {
+      //console.log(window.slots)
+      embed.setDescription(`**NPC Inventory**\n\n${renderInventory(window, interaction, true)}`)
+
+      interaction.editReply({embeds: [embed]})
     })
 
     const kill_button = new Discord.MessageButton().setEmoji('❌').setCustomId('kill').setStyle('DANGER');
@@ -91,11 +104,14 @@ module.exports = {
 
     const turn_button = new Discord.MessageButton().setEmoji('🔄').setCustomId('turn').setStyle('SECONDARY')
 
+
+    const test_button = new Discord.MessageButton().setLabel('Test').setCustomId('test').setStyle('SECONDARY')
+
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(mine_button)
+    const row3 = new Discord.MessageActionRow().addComponents().addComponents(mine_button, test_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -105,14 +121,10 @@ module.exports = {
     }
 
     let triggered;
-    const embed = new Discord.MessageEmbed()
-    .setTitle(`Online on ${interaction.options.getString('ip')}`)
-    .setColor('GREEN')
-    .setDescription("Ready to be viewed on your [Browser](https://Minecraft-to-Discord.baltrazz.repl.co)")
 
     bot.once("spawn", async () => {
 
-      mineflayerViewer(bot, { port: 3007, firstPerson: choosenBoolean })
+      mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
       await interaction.editReply({ embeds: [embed], components: [row1, row2, row3] })
       
       pingUser(interaction)
@@ -220,14 +232,49 @@ module.exports = {
             interaction.editReply({embeds: [embed]})
           });
       } else if(i.customId === 'mine') {
-        dig(bot, interaction)
+        let block;
+        const filter = m => m.author.id === interaction.user.id;
+        
+        embed.setDescription('Say the block name to mine')
+
+        interaction.editReply({embeds: [embed]})
+        
+        await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
+          .then(collected => {
+            let content = collected.values()
+            content = content.next().value.content
+            let message = collected.values()
+            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            block = content;
+          })
+          .catch(collected => {
+            embed.setDescription('Nothing said to execute/send within 30 Seconds')
+            interaction.editReply({embeds: [embed]})
+          });
+        
+        dig(bot, interaction, block)
       } else if(i.customId === "turn") {
         bot.look(bot.entity.yaw-(3.14/4), 0, false)
+      } else if(i.customId === "test") {
+        
+        const entity = bot.nearestEntity(entity => entity.name === "ArmorStand")
+
+        if(entity) {
+          await bot.activateEntity(entity)
+          //embed.setDescription(`Interacted with ${entity.name}, movement locked`)
+          interaction.editReply({embeds: [embed], components: []}) //later add entity row
+        } else {
+          embed.setDescription("Cant find entity to interact with")
+        }
       }
 
-      embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
+      const no_default_edit = ["test"]
+
+      if(!no_default_edit.includes(i.customId)) {
+      embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
-      await interaction.editReply({embeds: [embed], content: null})
+      await interaction.editReply({embeds: [embed]})
+      }
 
     })
 

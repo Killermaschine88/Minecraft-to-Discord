@@ -1,20 +1,32 @@
 const emojis = require('../constants/emojis.json')
+const { ignored } = require('./ignore.js')
 const sent_items = []
 
-function dig (bot, interaction) {
-  let target
+function dig (bot, interaction, block) {
+  const mcData = require('minecraft-data')(bot.version)
+
   if (bot.targetDigBlock) {
     interaction.editReply({ content: `already digging ${bot.targetDigBlock.name}`})
+  }
+ //console.log(mcData.blocksByName[block])
+
+  if(!mcData.blocksByName[block]) {
+    return interaction.editReply({content: `${block} not found`})
   } else {
-    target = bot.blockAt(bot.entity.position.offset(+1, 0, 0)) //going off your lower body aka feet
+    //
+    const ids = [mcData.blocksByName[block].id]
+    const target = bot.findBlocks({ matching: ids, maxDistance: 3, count: 1 })
+
     if (target && bot.canDigBlock(target)) {
+      bot.tool.equipForBlock(target, {})
       interaction.editReply({ content: `starting to dig ${target.name}`})
       bot.dig(target, onDiggingCompleted(interaction, target))
     } else {
-      interaction.editReply({content: 'cannot dig'})
+      interaction.editReply({content: 'cannot dig but found block'})
     }
   }
 }
+
 
 function onDiggingCompleted (interaction, target) {
     interaction.editReply({content: `finished digging ${target.name}`})
@@ -39,11 +51,24 @@ function snakeFormatter(words, state) {
 	return separateWord.join('_');
 }
 
-function renderInventory(bot, interaction) {
+function renderInventory(bot, interaction, npc) {
   let str = ''
   let i = 0
+  let max = 0
+  let maxRow = 0
+  let maxShown = 0
+  //console.log(bot.slots)
+  if(npc) {
+    maxRow = 10
+    maxShown = 54
+  } else {
+    maxRow = 9
+    maxShown = 45
+  }
 
-  for(const item of bot.inventory.slots) {
+  if(!bot.slots) return 'No Inventory'
+
+  for(const item of bot.slots) {
     //if(item) console.log(item)
     if(!item) {
       str += '<:inv_slot:919349781594247188>'
@@ -63,13 +88,21 @@ function renderInventory(bot, interaction) {
     }
     
     i++
+    max++
     
-    if(i === 9) {
+    if(i === maxRow) {
       str += '\n'
       i = 0
+    } else if(max === maxShown) {
+      break;
     }
   }
+  console.log(str)
   return str
 }
 
-module.exports = { dig, onDiggingCompleted, renderInventory }
+function parseMessage(message) {
+  return message
+}
+
+module.exports = { dig, onDiggingCompleted, renderInventory, parseMessage }
