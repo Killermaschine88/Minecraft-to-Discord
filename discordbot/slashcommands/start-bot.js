@@ -5,6 +5,7 @@ const { pathfinder, Movements } = require('mineflayer-pathfinder')
 const { GoalBlock } = require('mineflayer-pathfinder').goals
 const { dig, onDiggingCompleted, renderInventory, parseMessage } = require('../functions/func.js')
 const toolPlugin = require('mineflayer-tool').plugin
+const { npc_row1 } = require('../constants/rows/npc/row.js')
 
 module.exports = {
   name: "start-bot",
@@ -81,9 +82,10 @@ module.exports = {
 
     bot.on("windowOpen", async (window) => {
       //console.log(window.slots)
+      bot.window = window;
       embed.setDescription(`**NPC Inventory**\n${renderInventory(window, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-      interaction.editReply({embeds: [embed]})
+return interaction.editReply({embeds: [embed], components: [npc_row1]})
     })
 
     const kill_button = new Discord.MessageButton().setEmoji('❌').setCustomId('kill').setStyle('DANGER');
@@ -183,13 +185,16 @@ module.exports = {
     });
 
 
+    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "test"]
+    const npc_actions = ["close_npc", "click_npc_slot"]
+    
     const movement_array = ["left", "right", "forward", "back", "jump"]
-    const interacting_array = ["leftclick", "rightclick"]
 
     collector.on("collect", async (i) => {
       await i.deferUpdate()
       if (i.user.id !== interaction.user.id) return
 
+      if(player_actions.includes(i.customId)) {
       if (i.customId === "kill") {
         embed.setColor('RED')
         interaction.editReply({ content: "Stopped", embeds: [embed], components: [] })
@@ -262,13 +267,49 @@ module.exports = {
         if(entity) {
           await bot.activateEntity(entity)
           //embed.setDescription(`Interacted with ${entity.name}, movement locked`)
-          interaction.editReply({embeds: [embed], components: []}) //later add entity row
+          //interaction.editReply({embeds: [embed], components: []}) //later add entity row
         } else {
           embed.setDescription("Cant find entity to interact with")
         }
       }
+      } else if(npc_actions.includes(i.customId)) {
+        if(i.customId === "close_npc") {
+          bot.closeWindow(bot.window)
+          embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+      
+      await interaction.editReply({embeds: [embed], components: [row1, row2, row3]})
+        } else if(i.customId === "click_npc_slot") {
+          let slotToClick;
+          
+          const filter = m => m.author.id === interaction.user.id;
 
-      const no_default_edit = ["test"]
+        embed.setDescription('Slot number to click (slots start with 0 and go from left to right then a row down).')
+        interaction.editReply({embeds: [embed]})
+
+        await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
+          .then(collected => {
+            let content = collected.values()
+            content = content.next().value.content
+            let message = collected.values()
+            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            const check = Number(content)
+            console.log(bot.window.slots.length)
+            if(typeof check !== "number" && check <= bot.window.slots.length) {
+              embed.setDescription("Invalid number entered or invalid slot")
+              return interaction.editReply({embeds: [embed]})
+            } else {
+              slotToClick = check
+            }
+          })
+          .catch(collected => {
+            embed.setDescription('No slot number said within 30 Seconds')
+            interaction.editReply({embeds: [embed]})
+
+          bot.simpleClick.leftMouse (slotToClick)
+        }
+      }
+
+      const no_default_edit = ["test", "click_npc_slot", "close_npc"]
 
       if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
