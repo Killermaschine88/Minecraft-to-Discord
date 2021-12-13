@@ -46,7 +46,7 @@ function snakeFormatter(words, state) {
     return "POTATO_ITEM"
   } else if(words.toLowerCase() === "sugar canes") {
     return "SUGAR_CANE"
-  }
+  } else if(words.toLowerCase() === "redstone torch") return "REDSTONE_TORCH_ON"
 
 
   if(state) {

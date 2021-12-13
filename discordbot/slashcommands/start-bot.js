@@ -263,13 +263,18 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
       } else if(i.customId === "interact") {
         
         const entity = bot.nearestEntity()
-        interaction.followUp(`${entity.id}`)
+        
+        //console.log(entity.name)
         //console.log(bot.nearestEntity())
 
         if(entity) {
+
           await bot.activateEntity(entity)
-          //embed.setDescription(`Interacted with ${entity.name}, movement locked`)
-          //interaction.editReply({embeds: [embed], components: []}) //later add entity row
+
+          if(entity.name !== "ArmorStand") return
+          bot._client.write('use_entity', {target: entity.id, mouse: 2, x: 0.15, y: 1.5, z: -0.25, hand: 0}) 
+        
+          
         } else {
           embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nCan't find NPC to interact with.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 
