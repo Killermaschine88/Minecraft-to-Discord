@@ -185,7 +185,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     });
 
 
-    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "test"]
+    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact"]
     const npc_actions = ["close_npc", "click_npc_slot"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
@@ -262,7 +262,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         bot.look(bot.entity.yaw-(3.14/4), 0, false)
       } else if(i.customId === "interact") {
         
-        const entity = bot.nearestEntity(entity => (entity.name === "ArmorStand" || entity.name === "player" || entity.type === "mob") && (entity.onGround && entity.isValid))
+        const entity = bot.nearestEntity()
         console.log(bot.nearestEntity())
 
         if(entity) {
@@ -309,7 +309,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           })
 
           bot.simpleClick.leftMouse (slotToClick)
-            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.window, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+          //console.log(bot.currentWindow)
+            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 
 interaction.editReply({embeds: [embed]})
       }
