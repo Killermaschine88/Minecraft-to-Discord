@@ -107,13 +107,13 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const turn_button = new Discord.MessageButton().setEmoji('🔄').setCustomId('turn').setStyle('SECONDARY')
 
 
-    const test_button = new Discord.MessageButton().setLabel('Test').setCustomId('test').setStyle('SECONDARY')
+    const interact_button = new Discord.MessageButton().setLabel('interact').setCustomId('interact').setStyle('SECONDARY')
 
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(mine_button, test_button)
+    const row3 = new Discord.MessageActionRow().addComponents().addComponents(mine_button, interact_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -234,7 +234,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           })
           .catch(collected => {
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
-            interaction.editReply({embeds: [embed]})
+            return interaction.editReply({embeds: [embed]})
           });
       } else if(i.customId === 'mine') {
         let block;
@@ -254,22 +254,25 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           })
           .catch(collected => {
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
-            interaction.editReply({embeds: [embed]})
+            return interaction.editReply({embeds: [embed]})
           });
         
         dig(bot, interaction, block)
       } else if(i.customId === "turn") {
         bot.look(bot.entity.yaw-(3.14/4), 0, false)
-      } else if(i.customId === "test") {
+      } else if(i.customId === "interact") {
         
-        const entity = bot.nearestEntity(entity => entity.name === "ArmorStand")
+        const entity = bot.nearestEntity(entity => (entity.name === "ArmorStand" || entity.name === "player" || entity.type === "mob") && (entity.onGround && entity.isValid))
+        console.log(bot.nearestEntity())
 
         if(entity) {
           await bot.activateEntity(entity)
           //embed.setDescription(`Interacted with ${entity.name}, movement locked`)
           //interaction.editReply({embeds: [embed], components: []}) //later add entity row
         } else {
-          embed.setDescription("Cant find entity to interact with")
+          embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nCan't find NPC to interact with.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+  interaction.editReply({embeds: [embed]})
         }
       }
       } else if(npc_actions.includes(i.customId)) {
@@ -283,8 +286,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           
           const filter = m => m.author.id === interaction.user.id;
 
-        embed.setDescription('Slot number to click (slots start with 0 and go from left to right then a row down).')
-        interaction.editReply({embeds: [embed]})
+        interaction.editReply({content: 'Slot number to click (slots start with 0 and go from left to right then a row down).'})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
@@ -293,7 +295,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             let message = collected.values()
             interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
             const check = Number(content)
-            console.log(bot.window.slots.length)
+            //console.log(bot.window.slots.length)
             if(typeof check !== "number" && check <= bot.window.slots.length) {
               embed.setDescription("Invalid number entered or invalid slot")
               return interaction.editReply({embeds: [embed]})
@@ -303,22 +305,24 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           })
           .catch(collected => {
             embed.setDescription('No slot number said within 30 Seconds')
-            interaction.editReply({embeds: [embed]})
+            return interaction.editReply({embeds: [embed]})
+          })
 
           bot.simpleClick.leftMouse (slotToClick)
-        }
+            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.window, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+interaction.editReply({embeds: [embed]})
       }
+      } //add next group buttony
 
-      const no_default_edit = ["test", "click_npc_slot", "close_npc"]
-
-      if(!no_default_edit.includes(i.customId)) {
+      const no_default_edit = ["interact", "click_npc_slot", "close_npc"]
+    if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
       await interaction.editReply({embeds: [embed]})
-      }
+    }
 
-    })
-
+    }) //collectof
   }
 }
 
