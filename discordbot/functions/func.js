@@ -34,6 +34,7 @@ function onDiggingCompleted (interaction, target) {
   }
 
 function snakeFormatter(words, state) {
+  if(!words) return ''
 
   //PRE FILTERING
   if(words.toLowerCase().includes('dye')) {
@@ -132,8 +133,29 @@ function getEmoji(word) {
   return str
 }
 
-function parseMessage(message) {
-  return message
+function parseMessage(message, username) {
+  if(username) {
+    return `${username}: ${message}`
+  } else {
+
+  if(!message.extra) {
+    if(ignored.message.includes(message.text)) {
+      return false
+    }
+  } else {
+    if(ignored.message.includes(message.extra[0].text)) {
+      return false
+    }
+
+    let msg = '> ';
+    for(const m of message.extra) {
+      //console.log(m)
+      if(!m.text || m.text == '' || m.text == ' ' || m.text == '  ') continue;
+      msg += m.text
+    }
+    return msg
+  }
+  }
 }
 
 function parseScoreboard(board) {
@@ -143,11 +165,16 @@ function parseScoreboard(board) {
 function parseLore(inv, slotToClick, bot) {
   //
   let message = '';
-  const item = inv.slots.find(item => item.slot === slotToClick)
+  const item = inv.slots.find(item => item !== null && item.slot === slotToClick)
+
+  //console.log(item)
 
   if(!item || !item.nbt) {
-    message = "Invalid Item or can't parse Lore."
-    return message
+    return {
+      name: "No Name",
+      id: "No ID",
+      lore: "No Lore"
+    }
   }
 
   //handle found item
@@ -156,15 +183,22 @@ function parseLore(inv, slotToClick, bot) {
 
   const data = nbt.simplify(item.nbt)
   const display = data.display
+  //console.log(data)
   if (display == null) {
-    message = "No display"
-    return message
+    return {
+    name: item.displayName,
+    id: item.name,
+    lore: "No Lore"
+  }
   }
 
   const lore = display.Lore
   if (lore == null) {
-    message = "No lore"
-    return message
+    return {
+    name: item.displayName,
+    id: item.name,
+    lore: "No Lore"
+  }
   }
   for (const line of lore) {
     message += new ChatMessage(line).toString()

@@ -1,4 +1,4 @@
-const message_ignore = ["Mana", "Defense", "UPDATE"]
+const message_ignore = ["Mana", "Defense", "UPDATE", "", " ", "  "]
 
 
 const ignored = {

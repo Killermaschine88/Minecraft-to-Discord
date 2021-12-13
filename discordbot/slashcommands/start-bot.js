@@ -1,3 +1,4 @@
+require('dotenv').config()
 const Discord = require('discord.js')
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
@@ -53,7 +54,6 @@ module.exports = {
     //General Events
     bot.on("login", () => {
       console.log({ login: true })
-      //console.log(bot)
     })
 
     bot.on("kicked", (reason, loggedIn) => {
@@ -70,14 +70,18 @@ module.exports = {
     bot.on("message", async (message) => {
       const msg = parseMessage(message)
 
-      //console.log({msg: msg})
+      if(!msg) return
+
+      interaction.client.channels.cache.get(process.env.MESSAGE_LOGS_CHANNEL).send({content: `${msg}`})
+      return
     })
 
     bot.on("chat", async (username, message) => {
 
-      const msg = parseMessage(message)
+      const msg = parseMessage(message, username)
 
-      //console.log(`${username} said ${msg}`)
+      interaction.client.channels.cache.get(process.env.CHAT_LOGS_CHANNEL).send({content: `${msg}`})
+      return
     })
 
     bot.on("windowOpen", async (window) => {
