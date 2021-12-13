@@ -263,7 +263,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
       } else if(i.customId === "interact") {
         
         const entity = bot.nearestEntity()
-        console.log(bot.nearestEntity())
+        //console.log(bot.nearestEntity())
 
         if(entity) {
           await bot.activateEntity(entity)
