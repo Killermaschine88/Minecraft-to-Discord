@@ -71,7 +71,8 @@ function renderInventory(bot, interaction, npc) {
 
   if(bot.slots.length === 45) maxShown = 45 //Player Inventory
   else if(bot.slots.length === 90) maxShown = 54 //NPC Big Inventory
-  else maxShown = 36
+    else if(bot.slots.length === 81) maxShown = 45 //NPC Mid Inventory
+  else maxShown = 36 //NPC Small Inventory
 
   //console.log(bot.slots.length)
   //console.log(maxShown)
