@@ -186,7 +186,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
 
     const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact"]
-    const npc_actions = ["close_npc", "click_npc_slot"]
+    const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
 
@@ -263,6 +263,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
       } else if(i.customId === "interact") {
         
         const entity = bot.nearestEntity()
+        interaction.followUp(`${entity.id}`)
         //console.log(bot.nearestEntity())
 
         if(entity) {
@@ -281,7 +282,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
       await interaction.editReply({embeds: [embed], components: [row1, row2, row3]})
-        } else if(i.customId === "click_npc_slot") {
+        } else if(i.customId === "leftclick_npc_slot" || i.customId === "rightclick_npc_slot") {
           let slotToClick;
           
           const filter = m => m.author.id === interaction.user.id;
@@ -308,7 +309,11 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             return interaction.editReply({embeds: [embed]})
           })
 
-          bot.simpleClick.leftMouse (slotToClick)
+          if(i.customId === "leftclick_npc_slot") {
+          await bot.simpleClick.leftMouse (slotToClick)
+          } else {
+            await bot.simpleClick.rightMouse(slotToClick)
+          }
 
           //console.log(bot.currentWindow)
             embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
@@ -317,7 +322,7 @@ interaction.editReply({embeds: [embed]})
       }
       } //add next group buttony
 
-      const no_default_edit = ["interact", "click_npc_slot", "close_npc"]
+      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc"]
     if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
