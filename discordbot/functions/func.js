@@ -15,7 +15,8 @@ function dig (bot, interaction, block) {
   } else {
     //
     const ids = [mcData.blocksByName[block].id]
-    const target = bot.findBlocks({ matching: ids, maxDistance: 3, count: 1 })
+    const target = bot.blockAt(bot.findBlocks({ matching: ids, maxDistance: 3, count: 1 })[0])
+    //console.log(target)
 
     if (target && bot.canDigBlock(target)) {
       bot.tool.equipForBlock(target, {})
