@@ -7,9 +7,11 @@ const leftclick_npc_slot = new MessageButton().setLabel('Left Click').setCustomI
 
 const rightclick_npc_slot = new MessageButton().setLabel('Right Click').setCustomId('rightclick_npc_slot').setStyle('PRIMARY')
 
+const show_lore = new MessageButton().setLabel('Show Lore').setCustomId('show_lore').setStyle('PRIMARY')
+
 
 //Different Rows
-const npc_row1 = new MessageActionRow().addComponents(npc_close, leftclick_npc_slot, rightclick_npc_slot)
+const npc_row1 = new MessageActionRow().addComponents(npc_close, leftclick_npc_slot, rightclick_npc_slot, show_lore)
 
 
 //Exporting Rows

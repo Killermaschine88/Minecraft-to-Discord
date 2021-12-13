@@ -119,8 +119,78 @@ function renderInventory(bot, interaction, npc) {
   return str
 }
 
+function getEmoji(word) {
+
+  let str = ''
+  if(emojis[snakeFormatter(word.name, true)]) {
+        str += emojis[snakeFormatter(word.name, true)].formatted
+      } else if(emojis[snakeFormatter(word.id, false)]) {
+        str += emojis[snakeFormatter(word.id, false)].formatted
+      } else {
+        str += '<:missing_texture:919358315421663302>'
+  }
+  return str
+}
+
 function parseMessage(message) {
   return message
 }
 
-module.exports = { dig, onDiggingCompleted, renderInventory, parseMessage }
+function parseScoreboard(board) {
+  //
+}
+
+function parseLore(inv, slotToClick, bot) {
+  //
+  let message = '';
+  const item = inv.slots.find(item => item.slot === slotToClick)
+
+  if(!item || !item.nbt) {
+    message = "Invalid Item or can't parse Lore."
+    return message
+  }
+
+  //handle found item
+  const nbt = require('prismarine-nbt')
+  const ChatMessage = require('prismarine-chat')(bot.version)
+
+  const data = nbt.simplify(item.nbt)
+  const display = data.display
+  if (display == null) {
+    message = "No display"
+    return message
+  }
+
+  const lore = display.Lore
+  if (lore == null) {
+    message = "No lore"
+    return message
+  }
+  for (const line of lore) {
+    message += new ChatMessage(line).toString()
+    message += '\n'
+    if(message.length >= 3800) {
+      message += "\nMore to display but out of space"
+      break;
+    }
+  }
+
+  let id;
+  if(data.ExtraAttributes) {
+    if(data.ExtraAttributes.id) {
+      id = data.ExtraAttributes.id
+    } else {
+      id = "No ID"
+    }
+  } else {
+    id = "No ID"
+  }
+
+  return {
+    name: display.Name || "No Name",
+    id: id,
+    lore: message
+  }
+}
+
+module.exports = { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore }

@@ -3,7 +3,7 @@ const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 const { pathfinder, Movements } = require('mineflayer-pathfinder')
 const { GoalBlock } = require('mineflayer-pathfinder').goals
-const { dig, onDiggingCompleted, renderInventory, parseMessage } = require('../functions/func.js')
+const { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore } = require('../functions/func.js')
 const toolPlugin = require('mineflayer-tool').plugin
 const { npc_row1 } = require('../constants/rows/npc/row.js')
 
@@ -81,9 +81,10 @@ module.exports = {
     })
 
     bot.on("windowOpen", async (window) => {
+      //console.log("window open")
       //console.log(window.slots)
       bot.window = window;
-      embed.setDescription(`**NPC Inventory**\n${renderInventory(window, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+      embed.setDescription(`**NPC Inventory**\n${renderInventory(window, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
 
 return interaction.editReply({embeds: [embed], components: [npc_row1]})
     })
@@ -125,7 +126,6 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     let triggered;
 
     bot.once("spawn", async () => {
-
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
       await interaction.editReply({ embeds: [embed], components: [row1, row2, row3] })
       
@@ -189,6 +189,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
+
+    const global_actions = ["show_lore"]
 
     collector.on("collect", async (i) => {
       await i.deferUpdate()
@@ -292,6 +294,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           
           const filter = m => m.author.id === interaction.user.id;
 
+          
         interaction.editReply({content: 'Slot number to click (slots start with 0 and go from left to right then a row down).'})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
@@ -321,20 +324,67 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           }
 
           //console.log(bot.currentWindow)
-            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
 
 interaction.editReply({embeds: [embed]})
       }
-      } //add next group buttony
+      } else if(global_actions.includes(i.customId)) {
+        if(i.customId === "show_lore") {
+          let slotToClick;
+          let inv;
+          const filter = m => m.author.id === interaction.user.id;
+          
+          interaction.editReply({content: 'Slot number to click (slots start with 0 and go from left to right then a row down).'})
 
-      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc"]
+        await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
+          .then(collected => {
+            let content = collected.values()
+            content = content.next().value.content
+            let message = collected.values()
+            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            const check = Number(content)
+            //console.log(bot.window.slots.length)
+            if(!bot.currentWindow) {
+              inv = bot.inventory
+            } else {
+              inv = bot.currentWindow
+            }
+            if(typeof check !== "number" && check <= inv.slots.length) {
+              embed.setDescription("Invalid number entered or invalid slot")
+              return interaction.editReply({embeds: [embed]})
+            } else {
+              slotToClick = check
+            }
+          })
+          .catch(collected => {
+            embed.setDescription('No slot number said within 30 Seconds')
+            return interaction.editReply({embeds: [embed]})
+          })
+
+          //handle getting lore
+          const lore = parseLore(inv, slotToClick, bot)
+
+          const displayEmbed = new Discord.MessageEmbed().setTitle('Item Lore').setColor('GREEN').setDescription(`**Name:** ${lore.name} ${getEmoji({name: lore.name, id: lore.id})}\n**ID:** ${lore.id}\n**Lore:** ${lore.lore}`).setFooter("This message automatically gets deleted after 30 seconds.")
+
+          interaction.followUp({embeds: [displayEmbed]}).then(msg => {
+            setTimeout(() => {
+              try {
+                msg.delete()
+              } catch (e) {}
+            }, 30000)
+          })
+        }
+      } //add next group
+
+      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore"]
     if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
       await interaction.editReply({embeds: [embed]})
+     // console.log(bot.teams)
     }
 
-    }) //collectof
+    }) //collector
   }
 }
 
