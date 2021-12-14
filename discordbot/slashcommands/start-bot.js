@@ -14,6 +14,7 @@ module.exports = {
 
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
     let editDisabled = false
+    let currentRow = 1;
     
     if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
@@ -111,14 +112,23 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     const turn_button = new Discord.MessageButton().setEmoji('🔄').setCustomId('turn').setStyle('SECONDARY')
 
+    const interact_button = new Discord.MessageButton().setLabel('Interact').setCustomId('interact').setStyle('SECONDARY')
 
-    const interact_button = new Discord.MessageButton().setLabel('interact').setCustomId('interact').setStyle('SECONDARY')
+    const current_shown = new Discord.MessageButton().setLabel('Main (1/2)').setCustomId('0').setStyle('SECONDARY').setDisabled(true)
+    const row_back_button = new Discord.MessageButton().setLabel('Previous').setCustomId('previous').setStyle('SECONDARY').setDisabled(true)
+    const row_next_button = new Discord.MessageButton().setLabel('Next').setCustomId('next').setStyle('SECONDARY')
+ 
+      
+
+    const current_row = new Discord.MessageActionRow().addComponents(current_shown, row_back_button, row_next_button)
 
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(mine_button, interact_button)
+    const row3 = new Discord.MessageActionRow().addComponents().addComponents(interact_button)
+
+    const mining_row = new Discord.MessageActionRow().addComponents(mine_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -131,7 +141,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     bot.once("spawn", async () => {
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
-      await interaction.editReply({ embeds: [embed], components: [row1, row2, row3] })
+      await interaction.editReply({ embeds: [embed], components: [row1, row2, row3, current_row] })
       
       pingUser(interaction)
 
@@ -195,6 +205,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const movement_array = ["left", "right", "forward", "back", "jump"]
 
     const global_actions = ["show_lore"]
+
+    const change_row = ["previous", "next"]
 
     collector.on("collect", async (i) => {
       await i.deferUpdate()
@@ -291,8 +303,13 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         if(i.customId === "close_npc") {
           bot.closeWindow(bot.window)
           embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
-      
-      await interaction.editReply({embeds: [embed], components: [row1, row2, row3]})
+
+          currentRow = 1
+          current_row.components[0].label = "Main (1/2)"
+          current_row.components[2].disabled = false
+          current_row.components[1].disabled = true
+
+      await interaction.editReply({embeds: [embed], components: [row1, row2, row3, current_row]})
         } else if(i.customId === "leftclick_npc_slot" || i.customId === "rightclick_npc_slot") {
           let slotToClick;
           
@@ -378,9 +395,25 @@ interaction.editReply({embeds: [embed]})
             }, 30000)
           })
         }
+      } else if(change_row.includes(i.customId)) {
+        if(currentRow === 1) {
+  
+          currentRow = 2
+          current_row.components[0].label = "Mining (2/2)"
+          current_row.components[2].disabled = true
+          current_row.components[1].disabled = false
+          interaction.editReply({components: [mining_row, current_row]})
+        } else if(currentRow === 2) {
+          
+          currentRow = 1
+          current_row.components[0].label = "Main (1/2)"
+          current_row.components[2].disabled = false
+          current_row.components[1].disabled = true
+          interaction.editReply({components: [row1, row2, row3, current_row]})
+        }
       } //add next group
 
-      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore"]
+      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next"]
     if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
