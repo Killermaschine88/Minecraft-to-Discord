@@ -120,13 +120,13 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
  
       
 
-    const current_row = new Discord.MessageActionRow().addComponents(current_shown, row_back_button, row_next_button)
+    const current_row = new Discord.MessageActionRow().addComponents(current_shown, row_back_button, row_next_button, interact_button)
 
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
 
-    const row3 = new Discord.MessageActionRow().addComponents().addComponents(interact_button)
+    //const row3 = new Discord.MessageActionRow().addComponents().addComponents()
 
     const mining_row = new Discord.MessageActionRow().addComponents(mine_button)
 
@@ -141,7 +141,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     bot.once("spawn", async () => {
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
-      await interaction.editReply({ embeds: [embed], components: [row1, row2, row3, current_row] })
+      await interaction.editReply({ embeds: [embed], components: [row1, row2, current_row] })
       
       pingUser(interaction)
 
@@ -309,14 +309,12 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           current_row.components[2].disabled = false
           current_row.components[1].disabled = true
 
-      await interaction.editReply({embeds: [embed], components: [row1, row2, row3, current_row]})
+      await interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
         } else if(i.customId === "leftclick_npc_slot" || i.customId === "rightclick_npc_slot") {
           let slotToClick;
           
-          const filter = m => m.author.id === interaction.user.id;
-
-          
-        interaction.editReply({content: 'Slot number to click (slots start with 0 and go from left to right then a row down).'})
+          const filter = m => m.author.id === interaction.user.id;      
+        interaction.editReply({content: 'Slot number to click (slots start with 1 and go from left to right then a row down).'})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
@@ -330,7 +328,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
               embed.setDescription("Invalid number entered or invalid slot")
               return interaction.editReply({embeds: [embed]})
             } else {
-              slotToClick = check
+              slotToClick = check+1
             }
           })
           .catch(collected => {
@@ -355,7 +353,7 @@ interaction.editReply({embeds: [embed]})
           let inv;
           const filter = m => m.author.id === interaction.user.id;
           
-          interaction.editReply({content: 'Slot number to click (slots start with 0 and go from left to right then a row down).'})
+          interaction.editReply({content: 'Slot number to click (slots start with 1 and go from left to right then a row down).'})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
@@ -374,7 +372,7 @@ interaction.editReply({embeds: [embed]})
               embed.setDescription("Invalid number entered or invalid slot")
               return interaction.editReply({embeds: [embed]})
             } else {
-              slotToClick = check
+              slotToClick = check+1
             }
           })
           .catch(collected => {
@@ -394,6 +392,20 @@ interaction.editReply({embeds: [embed]})
               } catch (e) {}
             }, 30000)
           })
+        } else if(i.customId === "refresh") {
+          if(!bot.currentWindow) {
+            currentRow = 1
+          current_row.components[0].label = "Main (1/2)"
+          current_row.components[2].disabled = false
+          current_row.components[1].disabled = true
+            embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+            interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
+          } else {
+            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+interaction.editReply({embeds: [embed]})
+          }
         }
       } else if(change_row.includes(i.customId)) {
         if(currentRow === 1) {
@@ -409,11 +421,11 @@ interaction.editReply({embeds: [embed]})
           current_row.components[0].label = "Main (1/2)"
           current_row.components[2].disabled = false
           current_row.components[1].disabled = true
-          interaction.editReply({components: [row1, row2, row3, current_row]})
+          interaction.editReply({components: [row1, row2, current_row]})
         }
       } //add next group
 
-      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next"]
+      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next", "refresh"]
     if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
