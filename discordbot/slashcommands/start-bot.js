@@ -202,14 +202,16 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
            * 3 = First Mouse Button
            * 4 = Second Mouse Button
            */
-          const button_state = 4;
+          const button_state = 0;
 
-          if (button !== button_state) return 
-
+          if (button === button_state) {
           const p = block.position.offset(0, 1, 0)
 
           bot.pathfinder.setMovements(defaultMove)
           bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
+          } else if(button === 3) {
+            dig(bot, interaction, block.name)
+          }
         })
       }
 
@@ -328,6 +330,27 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
   interaction.editReply({embeds: [embed]})
         }
+      } else if(i.customId === "attack") {
+        const entity = bot.nearestEntity(entity => entity.type === "mob")
+        if(!entity) {
+          return interaction.editReply({content: "no mob found to attack"})
+        } else {
+        bot.attack(entity)
+        }
+      } else if(i.customId === "set_block") {
+        //
+        await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
+          .then(collected => {
+            let content = collected.values()
+            content = content.next().value.content
+            let message = collected.values()
+            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            block_to_mine = content;
+          })
+          .catch(collected => {
+            embed.setDescription('Nothing said to execute/send within 30 Seconds')
+            return interaction.editReply({embeds: [embed]})
+          });
       }
       } else if(npc_actions.includes(i.customId)) {
         if(i.customId === "close_npc") {
