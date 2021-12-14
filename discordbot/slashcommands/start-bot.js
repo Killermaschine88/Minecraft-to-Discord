@@ -7,6 +7,7 @@ const { GoalBlock } = require('mineflayer-pathfinder').goals
 const { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore } = require('../functions/func.js')
 const toolPlugin = require('mineflayer-tool').plugin
 const { npc_row1 } = require('../constants/rows/npc/row.js')
+let msg;
 
 module.exports = {
   name: "start-bot",
@@ -18,7 +19,7 @@ module.exports = {
     
     if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
-    const menu = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
+    msg = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
 
     const bot = mineflayer.createBot({
       host: interaction.options.getString('ip'),
@@ -59,29 +60,29 @@ module.exports = {
 
     bot.on("kicked", (reason, loggedIn) => {
       console.log({ kicked_reason: reason })
-      return interaction.editReply({ content: "Kicked!", wasLoggedIn: loggedIn })
+      return msg.edit({ content: "Kicked!", wasLoggedIn: loggedIn })
     })
 
     bot.on("error", (err) => {
       console.log({ error: err })
-      return interaction.editReply("Cant connect to Server or invalid IP.")
+      return msg.edit("Cant connect to Server or invalid IP.")
       bot.end()
     })
 
     bot.on("message", async (message) => {
-      const msg = parseMessage(message)
+      const msgs = parseMessage(message)
 
-      if(!msg) return
+      if(!msgs) return
 
-      interaction.client.channels.cache.get(process.env.MESSAGE_LOGS_CHANNEL).send({content: `${msg}`})
+      interaction.client.channels.cache.get(process.env.MESSAGE_LOGS_CHANNEL).send({content: `${msgs}`})
       return
     })
 
     bot.on("chat", async (username, message) => {
 
-      const msg = parseMessage(message, username)
+      const msgs = parseMessage(message, username)
 
-      interaction.client.channels.cache.get(process.env.CHAT_LOGS_CHANNEL).send({content: `${msg}`})
+      interaction.client.channels.cache.get(process.env.CHAT_LOGS_CHANNEL).send({content: `${msgs}`})
       return
     })
 
@@ -91,7 +92,7 @@ module.exports = {
       bot.window = window;
       embed.setDescription(`**NPC Inventory**\n${renderInventory(window, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-return interaction.editReply({embeds: [embed], components: [npc_row1]})
+return msg.edit({embeds: [embed], components: [npc_row1]})
     })
 
     bot.on("windowClose", async (window) => {
@@ -101,7 +102,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           current_row.components[1].disabled = true
             embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nEvent **window closed** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-            return interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
+            return msg.edit({embeds: [embed], components: [row1, row2, current_row]})
     })
 
     const kill_button = new Discord.MessageButton().setEmoji('❌').setCustomId('kill').setStyle('DANGER');
@@ -151,7 +152,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     bot.once("spawn", async () => {
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
-      await interaction.editReply({ embeds: [embed], components: [row1, row2, current_row] })
+       msg.edit({ embeds: [embed], components: [row1, row2, current_row] })
       
       pingUser(interaction)
 
@@ -167,7 +168,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           if(r.status === "success") {
 
             embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **move via browser** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
-              interaction.editReply({embeds: [embed]})
+              msg.edit({embeds: [embed]})
           }
           const path = [bot.entity.position.offset(0, 0.5, 0)]
           for (const node of r.path) {
@@ -203,9 +204,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     })
 
-    const collector = menu.createMessageComponentCollector({
+    const collector = msg.createMessageComponentCollector({
       componentType: 'BUTTON',
-      time: 858000,
+      time: 360000, //1 hour
     });
 
 
@@ -221,11 +222,10 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     collector.on("collect", async (i) => {
       await i.deferUpdate()
       if (i.user.id !== interaction.user.id) return
-
       if(player_actions.includes(i.customId)) {
       if (i.customId === "kill") {
         embed.setColor('RED')
-        interaction.editReply({ content: "Stopped", embeds: [embed], components: [] })
+        msg.edit({ content: "Stopped", embeds: [embed], components: [] })
         await bot.viewer.close()
         bot.end()
         return collector.stop()
@@ -250,19 +250,19 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         const filter = m => m.author.id === interaction.user.id;
 
         embed.setDescription('Command / Message to execute / send.')
-        interaction.editReply({embeds: [embed]})
+        msg.edit({embeds: [embed]})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
             let content = collected.values()
             content = content.next().value.content
             let message = collected.values()
-            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            interaction.channel.messages.fetch(message.next().value.id).then(msgg => msgg.delete())
             bot.chat(content)
           })
           .catch(collected => {
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
-            return interaction.editReply({embeds: [embed]})
+            return msg.edit({embeds: [embed]})
           });
       } else if(i.customId === 'mine') {
         let block;
@@ -270,19 +270,19 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         
         embed.setDescription('Say the block name to mine')
 
-        interaction.editReply({embeds: [embed]})
+       msg.edit({embeds: [embed]})
         
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
             let content = collected.values()
             content = content.next().value.content
             let message = collected.values()
-            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            interaction.channel.messages.fetch(message.next().value.id).then(msgg => msgg.delete())
             block = content;
           })
           .catch(collected => {
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
-            return interaction.editReply({embeds: [embed]})
+            return msg.edit({embeds: [embed]})
           });
         
         dig(bot, interaction, block)
@@ -306,7 +306,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         } else {
           embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nCan't find NPC to interact with.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-  interaction.editReply({embeds: [embed]})
+  msg.edit({embeds: [embed]})
         }
       }
       } else if(npc_actions.includes(i.customId)) {
@@ -325,19 +325,19 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           let slotToClick;
           
           const filter = m => m.author.id === interaction.user.id;      
-        interaction.editReply({content: 'Slot number to click (slots start with 1 and go from left to right then a row down).'})
+        msg.edit({content: 'Slot number to click (slots start with 1 and go from left to right then a row down).'})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
             let content = collected.values()
             content = content.next().value.content
             let message = collected.values()
-            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            interaction.channel.messages.fetch(message.next().value.id).then(msgg => msgg.delete())
             const check = Number(content)
             //console.log(bot.window.slots.length)
             if(typeof check !== "number" && check <= bot.window.slots.length) {
               embed.setDescription("Invalid number entered or invalid slot")
-              return interaction.editReply({embeds: [embed]})
+              return msg.edit({embeds: [embed]})
             } else {
               slotToClick = check
               slotToClick--
@@ -345,7 +345,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           })
           .catch(collected => {
             embed.setDescription('No slot number said within 30 Seconds')
-            return interaction.editReply({embeds: [embed]})
+            return msg.edit({embeds: [embed]})
           })
 
           //console.log(slotToClick)
@@ -357,9 +357,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           }
 
           //console.log(bot.currentWindow)
-            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
+            embed.setDescription(`**NPC Inventory (Sometimes needs manual refresh)**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-interaction.editReply({embeds: [embed]})
+msg.edit({embeds: [embed]})
       } else if(i.customId === "refresh") {
           //console.log(bot.currentWindow)
           if(!bot.currentWindow) {
@@ -369,11 +369,11 @@ interaction.editReply({embeds: [embed]})
           current_row.components[1].disabled = true
             embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-            interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
+          msg.edit({embeds: [embed], components: [row1, row2, current_row]})
           } else {
             embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
 
-interaction.editReply({embeds: [embed]})
+msg.edit({embeds: [embed]})
           }
         }
       } else if(global_actions.includes(i.customId)) {
@@ -382,14 +382,14 @@ interaction.editReply({embeds: [embed]})
           let inv;
           const filter = m => m.author.id === interaction.user.id;
           
-          interaction.editReply({content: 'Slot number to click (slots start with 1 and go from left to right then a row down).'})
+        msg.edit({content: 'Slot number to click (slots start with 1 and go from left to right then a row down).'})
 
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
             let content = collected.values()
             content = content.next().value.content
             let message = collected.values()
-            interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+            interaction.channel.messages.fetch(message.next().value.id).then(msgg => msgg.delete())
             const check = Number(content)
             //console.log(bot.window.slots.length)
             if(!bot.currentWindow) {
@@ -399,7 +399,7 @@ interaction.editReply({embeds: [embed]})
             }
             if(typeof check !== "number" && check <= inv.slots.length) {
               embed.setDescription("Invalid number entered or invalid slot")
-              return interaction.editReply({embeds: [embed]})
+              return msg.edit({embeds: [embed]})
             } else {
               slotToClick = check
               slotToClick--
@@ -407,7 +407,7 @@ interaction.editReply({embeds: [embed]})
           })
           .catch(collected => {
             embed.setDescription('No slot number said within 30 Seconds')
-            return interaction.editReply({embeds: [embed]})
+            return msg.edit({embeds: [embed]})
           })
 
           //handle getting lore
@@ -415,10 +415,10 @@ interaction.editReply({embeds: [embed]})
 
           const displayEmbed = new Discord.MessageEmbed().setTitle('Item Lore').setColor('GREEN').setDescription(`**Name:** ${lore.name} ${getEmoji({name: lore.name, id: lore.id})}\n**ID:** ${lore.id}\n**Lore:** ${lore.lore}`).setFooter("This message automatically gets deleted after 30 seconds.")
 
-          interaction.followUp({embeds: [displayEmbed]}).then(msg => {
+          interaction.followUp({embeds: [displayEmbed]}).then(msgg => {
             setTimeout(() => {
               try {
-                msg.delete()
+                msgg.delete()
               } catch (e) {}
             }, 30000)
           })
@@ -430,14 +430,14 @@ interaction.editReply({embeds: [embed]})
           current_row.components[0].label = "Mining (2/2)"
           current_row.components[2].disabled = true
           current_row.components[1].disabled = false
-          interaction.editReply({components: [mining_row, current_row]})
+          msg.edit({components: [mining_row, current_row]})
         } else if(currentRow === 2) {
           
           currentRow = 1
           current_row.components[0].label = "Main (1/2)"
           current_row.components[2].disabled = false
           current_row.components[1].disabled = true
-          interaction.editReply({components: [row1, row2, current_row]})
+          msg.edit({components: [row1, row2, current_row]})
         }
       } //add next group
 
@@ -445,7 +445,7 @@ interaction.editReply({embeds: [embed]})
     if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
-      await interaction.editReply({embeds: [embed]})
+      await msg.edit({embeds: [embed]})
      // console.log(bot.teams)
     }
 
@@ -460,9 +460,9 @@ const sleep = async (ms) => {
 }
 
 function pingUser(interaction) {
-  interaction.followUp({content: `<@${interaction.user.id}>`}).then(msg => {
+  interaction.followUp({content: `<@${interaction.user.id}>`}).then(msgg => {
     setTimeout(() => {
-      msg.delete()
+      msgg.delete()
     }, 5000)
   })
 }
