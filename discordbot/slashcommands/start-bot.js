@@ -94,6 +94,16 @@ module.exports = {
 return interaction.editReply({embeds: [embed], components: [npc_row1]})
     })
 
+    bot.on("windowClose", async (window) => {
+      currentRow = 1
+          current_row.components[0].label = "Main (1/2)"
+          current_row.components[2].disabled = false
+          current_row.components[1].disabled = true
+            embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nEvent **window closed** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+            return interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
+    })
+
     const kill_button = new Discord.MessageButton().setEmoji('❌').setCustomId('kill').setStyle('DANGER');
 
     const forward_button = new Discord.MessageButton().setEmoji('⬆️').setCustomId('forward').setStyle('PRIMARY');
@@ -200,7 +210,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
 
     const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact"]
-    const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot"]
+    const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot", "refresh"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
 
@@ -328,13 +338,16 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
               embed.setDescription("Invalid number entered or invalid slot")
               return interaction.editReply({embeds: [embed]})
             } else {
-              slotToClick = check+1
+              slotToClick = check
+              slotToClick--
             }
           })
           .catch(collected => {
             embed.setDescription('No slot number said within 30 Seconds')
             return interaction.editReply({embeds: [embed]})
           })
+
+          //console.log(slotToClick)
 
           if(i.customId === "leftclick_npc_slot") {
           await bot.simpleClick.leftMouse (slotToClick)
@@ -346,7 +359,22 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
 
 interaction.editReply({embeds: [embed]})
-      }
+      } else if(i.customId === "refresh") {
+          //console.log(bot.currentWindow)
+          if(!bot.currentWindow) {
+            currentRow = 1
+          current_row.components[0].label = "Main (1/2)"
+          current_row.components[2].disabled = false
+          current_row.components[1].disabled = true
+            embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+            interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
+          } else {
+            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
+
+interaction.editReply({embeds: [embed]})
+          }
+        }
       } else if(global_actions.includes(i.customId)) {
         if(i.customId === "show_lore") {
           let slotToClick;
@@ -372,7 +400,8 @@ interaction.editReply({embeds: [embed]})
               embed.setDescription("Invalid number entered or invalid slot")
               return interaction.editReply({embeds: [embed]})
             } else {
-              slotToClick = check+1
+              slotToClick = check
+              slotToClick--
             }
           })
           .catch(collected => {
@@ -392,20 +421,6 @@ interaction.editReply({embeds: [embed]})
               } catch (e) {}
             }, 30000)
           })
-        } else if(i.customId === "refresh") {
-          if(!bot.currentWindow) {
-            currentRow = 1
-          current_row.components[0].label = "Main (1/2)"
-          current_row.components[2].disabled = false
-          current_row.components[1].disabled = true
-            embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
-
-            interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
-          } else {
-            embed.setDescription(`**NPC Inventory**\n${renderInventory(bot.currentWindow, interaction, true)}\n\n**Player Inventory (Updates once closed)**\n${renderInventory(bot.inventory, interaction, false)}`)
-
-interaction.editReply({embeds: [embed]})
-          }
         }
       } else if(change_row.includes(i.customId)) {
         if(currentRow === 1) {
