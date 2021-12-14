@@ -15,6 +15,7 @@ module.exports = {
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
     let editDisabled = false
     let currentRow = 1;
+    let block = '';
     
     if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
@@ -22,10 +23,9 @@ module.exports = {
 
     const bot = mineflayer.createBot({
       host: interaction.options.getString('ip'),
-      //username: process.env.MINECRAFT_EMAIL,
-      username: "Baltraz",
-      //password: process.env.MINECRAFT_PASSWORD,
-    //version: "1.8.9",
+      username: process.env.MINECRAFT_EMAIL,
+      password: process.env.MINECRAFT_PASSWORD,
+    version: "1.8.9",
       viewDistance: 'tiny',
       colorsEnabled: false,
       skinParts: {
@@ -131,12 +131,14 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const row_next_button = new Discord.MessageButton().setLabel('Next').setCustomId('next').setStyle('SECONDARY')
 
     const show_lore = new Discord.MessageButton().setLabel('Show Lore').setCustomId('show_lore').setStyle('SECONDARY')
+    
+    const attack_button = new Discord.MessageButton().setLabel('⚔️').setCustomId('attack').setStyle('DANGER')
  
       
 
     const current_row = new Discord.MessageActionRow().addComponents(current_shown, row_back_button, row_next_button, interact_button)
 
-    const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button)
+    const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button, attack_button)
 
     const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
 
@@ -158,6 +160,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     bot.once("spawn", async () => {
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
       await interaction.editReply({ embeds: [embed], components: [row1, row2, current_row] })
+
+      console.log(bot.viewer)
       
       pingUser(interaction)
 
@@ -196,7 +200,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
            * 3 = First Mouse Button
            * 4 = Second Mouse Button
            */
-          const button_state = 0;
+          const button_state = 4;
 
           if (button !== button_state) return 
 
@@ -215,7 +219,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     });
 
 
-    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact"]
+    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact", "attack"]
     const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot", "refresh"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
