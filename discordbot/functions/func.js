@@ -158,8 +158,40 @@ function parseMessage(message, username) {
   }
 }
 
-function parseScoreboard(board) {
-  //
+function parseScoreboard(bot) {
+  let coins;
+  let health;
+  let sb = bot.scoreboards
+  sb = Object.values(sb)
+  //console.log(sb)
+  sb = sb.find(board => board.name === "health")
+  if(!sb) {
+    health = "No health"
+  } else {
+  sb = Object.values(sb.itemsMap)
+  health = sb.find(player => player.name === bot.username).value
+  }
+
+  sb = bot.scoreboards
+  sb = Object.values(sb)
+  sb = sb.find(board => board.name === "SBScoreboard")
+  if(!sb) {
+    coins = "No coins"
+  } else {
+    sb = Object.values(sb.itemsMap)
+    sb = sb.find(item => item.value === 6)
+    if(sb.displayName.json.text === "Purse: ") {
+      //console.log(sb.displayName.json.extra)
+      coins = sb.displayName.json.extra[0].text
+    }
+  }
+  
+  
+  
+  return {
+    health: health || "No health",
+    coins: coins || "No coins"
+  }
 }
 
 function parseLore(inv, slotToClick, bot) {

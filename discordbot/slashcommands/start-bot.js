@@ -219,6 +219,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const change_row = ["previous", "next"]
 
     collector.on("collect", async (i) => {
+      const sb = parseScoreboard(bot)
+      embed.setFooter(`❤️ Health: ${sb.health}\n💰 Purse: ${sb.coins}`)
+      
       await i.deferUpdate()
       if (i.user.id !== interaction.user.id) return
 
