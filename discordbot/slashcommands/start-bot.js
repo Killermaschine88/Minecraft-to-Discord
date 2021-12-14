@@ -22,9 +22,10 @@ module.exports = {
 
     const bot = mineflayer.createBot({
       host: interaction.options.getString('ip'),
-      username: process.env.MINECRAFT_EMAIL,
-      password: process.env.MINECRAFT_PASSWORD,
-      version: "1.8.9",
+      //username: process.env.MINECRAFT_EMAIL,
+      username: "Baltraz",
+      //password: process.env.MINECRAFT_PASSWORD,
+    //version: "1.8.9",
       viewDistance: 'tiny',
       colorsEnabled: false,
       skinParts: {
@@ -70,6 +71,7 @@ module.exports = {
 
     bot.on("message", async (message) => {
       const msg = parseMessage(message)
+      //console.log(message)
 
       if(!msg) return
 
@@ -127,6 +129,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const current_shown = new Discord.MessageButton().setLabel('Main (1/2)').setCustomId('0').setStyle('SECONDARY').setDisabled(true)
     const row_back_button = new Discord.MessageButton().setLabel('Previous').setCustomId('previous').setStyle('SECONDARY').setDisabled(true)
     const row_next_button = new Discord.MessageButton().setLabel('Next').setCustomId('next').setStyle('SECONDARY')
+
+    const show_lore = new Discord.MessageButton().setLabel('Show Lore').setCustomId('show_lore').setStyle('SECONDARY')
  
       
 
@@ -139,6 +143,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     //const row3 = new Discord.MessageActionRow().addComponents().addComponents()
 
     const mining_row = new Discord.MessageActionRow().addComponents(mine_button)
+
+    current_row.addComponents(show_lore)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
