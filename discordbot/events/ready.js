@@ -48,6 +48,18 @@ module.exports = {
       {
         name: "kill",
         description: "kill bot"
+      },
+      {
+        name: "say",
+        description: "send a msg",
+        options: [
+          {
+            name: "input",
+            description: "word",
+            type: "STRING",
+            required: true
+          }
+        ]
       }
     ]
 

@@ -15,7 +15,7 @@ module.exports = {
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
     let editDisabled = false
     let currentRow = 1;
-    let block = '';
+    let block_to_mine = '';
     
     if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
@@ -121,10 +121,13 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const message_button = new Discord.MessageButton().setEmoji('📢').setCustomId('message').setStyle('SECONDARY')
 
     const mine_button = new Discord.MessageButton().setEmoji('852069714577719306').setCustomId('mine').setStyle('SECONDARY')
+    const set_block = new Discord.MessageButton().setLabel('Set Block').setCustomId('set_block').setStyle('SECONDARY')
 
     const turn_button = new Discord.MessageButton().setEmoji('🔄').setCustomId('turn').setStyle('SECONDARY')
 
     const interact_button = new Discord.MessageButton().setLabel('Interact').setCustomId('interact').setStyle('SECONDARY')
+
+    const leftclick_npc_slot = new Discord.MessageButton().setLabel('Click Inv').setCustomId('leftclick_npc_slot').setStyle('SECONDARY')
 
     const current_shown = new Discord.MessageButton().setLabel('Main (1/2)').setCustomId('0').setStyle('SECONDARY').setDisabled(true)
     const row_back_button = new Discord.MessageButton().setLabel('Previous').setCustomId('previous').setStyle('SECONDARY').setDisabled(true)
@@ -140,11 +143,11 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     const row1 = new Discord.MessageActionRow().addComponents(kill_button, forward_button, jump_button, message_button, attack_button)
 
-    const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button)
+    const row2 = new Discord.MessageActionRow().addComponents(left_button, back_button, right_button, turn_button, leftclick_npc_slot)
 
     //const row3 = new Discord.MessageActionRow().addComponents().addComponents()
 
-    const mining_row = new Discord.MessageActionRow().addComponents(mine_button)
+    const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block)
 
     current_row.addComponents(show_lore)
 
@@ -161,7 +164,6 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
       await interaction.editReply({ embeds: [embed], components: [row1, row2, current_row] })
 
-      console.log(bot.viewer)
       
       pingUser(interaction)
 
@@ -219,7 +221,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     });
 
 
-    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact", "attack"]
+    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact", "attack", "set_block"]
     const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot", "refresh"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
@@ -280,6 +282,10 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
       } else if(i.customId === 'mine') {
         let block;
         const filter = m => m.author.id === interaction.user.id;
+
+        if(block_to_mine !== '') {
+          block = block_to_mine
+        } else {
         
         embed.setDescription('Say the block name to mine')
 
@@ -297,6 +303,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
             return interaction.editReply({embeds: [embed]})
           });
+        }
         
         dig(bot, interaction, block)
       } else if(i.customId === "turn") {
@@ -364,6 +371,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           //console.log(slotToClick)
 
           if(i.customId === "leftclick_npc_slot") {
+            if(!bot.currentWindow) {
+              slotToClick += 9
+            }
           await bot.simpleClick.leftMouse (slotToClick)
           } else {
             await bot.simpleClick.rightMouse(slotToClick)
@@ -424,6 +434,9 @@ interaction.editReply({embeds: [embed]})
           })
 
           //handle getting lore
+          if(!bot.currentWindow) {
+            slotToClick += 9
+          }
           const lore = parseLore(inv, slotToClick, bot)
 
           const displayEmbed = new Discord.MessageEmbed().setTitle('Item Lore').setColor('GREEN').setDescription(`**Name:** ${lore.name} ${getEmoji({name: lore.name, id: lore.id})}\n**ID:** ${lore.id}\n**Lore:** ${lore.lore}`).setFooter("This message automatically gets deleted after 30 seconds.")

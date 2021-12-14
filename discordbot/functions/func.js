@@ -2,8 +2,9 @@ const emojis = require('../constants/emojis.json')
 const { ignored } = require('./ignore.js')
 const sent_items = []
 
-function dig (bot, interaction, block) {
+async function dig (bot, interaction, block) {
   const mcData = require('minecraft-data')(bot.version)
+  //console.log(block)
 
   if (bot.targetDigBlock) {
     interaction.editReply({ content: `already digging ${bot.targetDigBlock.name}`})
@@ -15,13 +16,17 @@ function dig (bot, interaction, block) {
   } else {
     //
     const ids = [mcData.blocksByName[block].id]
-    const target = bot.blockAt(bot.findBlocks({ matching: ids, maxDistance: 3, count: 1 })[0])
+    const target = bot.blockAt(bot.findBlocks({ matching: ids, maxDistance: 60, count: 1 })[0])
     //console.log(target)
 
     if (target && bot.canDigBlock(target)) {
       bot.tool.equipForBlock(target, {})
       interaction.editReply({ content: `starting to dig ${target.name}`})
-      bot.dig(target, onDiggingCompleted(interaction, target))
+      try {
+      await bot.dig(target, true, 'raycast')
+      } catch (e) {
+        interaction.editReply({content: `cant find ${block} within 3 blocks`})
+      }
     } else {
       interaction.editReply({content: 'cannot dig but found block'})
     }
@@ -29,12 +34,13 @@ function dig (bot, interaction, block) {
 }
 
 
-function onDiggingCompleted (interaction, target) {
-    interaction.editReply({content: `finished digging ${target.name}`})
+function onDiggingCompleted (err) {
+    console.log(err)
   }
 
 function snakeFormatter(words, state) {
   if(!words) return ''
+
 
   //PRE FILTERING
   if(words.toLowerCase().includes('dye')) {
@@ -47,7 +53,18 @@ function snakeFormatter(words, state) {
     return "POTATO_ITEM"
   } else if(words.toLowerCase() === "sugar canes") {
     return "SUGAR_CANE"
-  } else if(words.toLowerCase() === "redstone torch") return "REDSTONE_TORCH_ON"
+  } else if(words.toLowerCase() === "redstone torch") {
+    return "REDSTONE_TORCH_ON"
+  } else if(words.toLowerCase().includes('wood') || words.toLowerCase() === 'planks') {
+    words = words.replace('wooden', 'wood')
+    words = words.replace('slab', 'step')
+    words = words.replace('planks', 'wood')
+  } else if(words.toLowerCase() === 'crafting table') {
+    return "CRAFTING_PLUS"
+  } else if(words.toLowerCase().includes('golden')) {
+    words = words.replace('golden', 'gold')
+  }
+
 
 
   if(state) {
@@ -66,26 +83,20 @@ function renderInventory(bot, interaction, npc) {
   let max = 0
   const maxRow = 9
   let maxShown = 0
-  //console.log(bot.slots)
 
   if(!bot.slots) return 'No Inventory'
-
 
   if(bot.slots.length === 45) maxShown = 45 //Player Inventory
   else if(bot.slots.length === 90) maxShown = 54 //NPC Big Inventory
     else if(bot.slots.length === 81) maxShown = 45 //NPC Mid Inventory
   else maxShown = 36 //NPC Small Inventory
 
-  //console.log(bot.slots.length)
-  //console.log(maxShown)
-
   for(const item of bot.slots) {
+
     if(j < 9 && !npc) {
-      //console.log("skipped")
       j++
       continue
     }
-    //if(item) console.log(item)
     if(!item) {
       str += '<:inv_slot:919349781594247188>'
     } else {
