@@ -311,15 +311,16 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
       }
       } else if(npc_actions.includes(i.customId)) {
         if(i.customId === "close_npc") {
-          bot.closeWindow(bot.window)
-          embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
-
-          currentRow = 1
-          current_row.components[0].label = "Main (1/2)"
-          current_row.components[2].disabled = false
-          current_row.components[1].disabled = true
-
-      await interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
+          if(bot.currentWindow) {
+          bot.closeWindow(bot.currentWindow)
+          } else {
+            try {
+              bot.closeWindow(bot.window)
+            } catch (error) {
+              
+            }
+          }
+      
         } else if(i.customId === "leftclick_npc_slot" || i.customId === "rightclick_npc_slot") {
           let slotToClick;
           
