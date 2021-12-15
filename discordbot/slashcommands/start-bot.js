@@ -386,6 +386,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             let message = collected.values()
             interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
             block_to_mine = content;
+            embed.setDescription(`set block to mine to ${content}`)
+            interaction.editReply({embeds: [embed]})
           })
           .catch(collected => {
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
@@ -530,7 +532,7 @@ interaction.editReply({embeds: [embed]})
         }
       } //add next group
 
-      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next", "refresh"]
+      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next", "refresh", "set_block"]
     if(!no_default_edit.includes(i.customId)) {
       embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
       
