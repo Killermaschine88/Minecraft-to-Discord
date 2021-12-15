@@ -49,12 +49,12 @@ let danger = new movement.heuristics.danger();*/
     weighting: 10
 });
 let conformity = new movement.heuristics.conformity({
-    weighting: 10
+    weighting: 5
 });
 let distance = new movement.heuristics.distance({
     weighting: 10,
     radius: 5,
-    count: 15,
+    count: 10,
     sectorLength: 0.25
 });
 let danger = new movement.heuristics.danger({
@@ -250,7 +250,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             bot.setControlState("jump", false)
             return
           }
-  bot.movement.steer(p, 8, "average")
+          bot.setControlState("sprint", true)
+  bot.movement.steer(p, 25, "average")
 }); 
       }
 
@@ -287,7 +288,6 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         return collector.stop()
       }
       if (movement_array.includes(i.customId)) {
-        p = null
         if (i.customId === "jump") {
 
           bot.setControlState(i.customId, true)
