@@ -7,6 +7,7 @@ const { GoalBlock } = require('mineflayer-pathfinder').goals
 const { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore } = require('../functions/func.js')
 const toolPlugin = require('mineflayer-tool').plugin
 const { npc_row1 } = require('../constants/rows/npc/row.js')
+const movement = require('mineflayer-movement')
 
 module.exports = {
   name: "start-bot",
@@ -38,6 +39,28 @@ module.exports = {
       },
     })
 
+    bot.loadPlugin(movement.plugin);
+
+    /*let proximity = new movement.heuristics.proximity();
+let conformity = new movement.heuristics.conformity();
+let distance = new movement.heuristics.distance();
+let danger = new movement.heuristics.danger();*/
+    let proximity = new movement.heuristics.proximity({
+    weighting: 10
+});
+let conformity = new movement.heuristics.conformity({
+    weighting: 10
+});
+let distance = new movement.heuristics.distance({
+    weighting: 10,
+    radius: 5,
+    count: 15,
+    sectorLength: 0.25
+});
+let danger = new movement.heuristics.danger({
+  weighting: 0.1
+});
+
     const embed = new Discord.MessageEmbed()
     .setTitle(`Online on ${interaction.options.getString('ip')}`)
     .setColor('GREEN')
@@ -56,6 +79,7 @@ module.exports = {
     //General Events
     bot.on("login", () => {
       console.log({ login: true })
+      bot.movement.loadHeuristics(proximity, conformity, distance, danger);
     })
 
     bot.on("kicked", (reason, loggedIn) => {
@@ -159,10 +183,12 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     }
 
     let triggered;
+    let p = null;
 
     bot.once("spawn", async () => {
       mineflayerViewer(bot, { port: 3000, firstPerson: choosenBoolean })
       await interaction.editReply({ embeds: [embed], components: [row1, row2, current_row] })
+      bot.setControlState("sprint", true)
 
       
       pingUser(interaction)
@@ -174,6 +200,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         bot.loadPlugin(pathfinder)
 
         bot.on('path_update', (r) => {
+          //console.log(r)
           const nodesPerTick = (r.visitedNodes * 50 / r.time).toFixed(2)
           //console.log(`I can get there in ${r.path.length} moves. Computation took ${r.time.toFixed(2)} ms (${nodesPerTick} nodes/tick). ${r.status}`)
           if(r.status === "success") {
@@ -185,7 +212,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           for (const node of r.path) {
             path.push({ x: node.x, y: node.y + 0.5, z: node.z })
           }
-          bot.viewer.drawLine('path', path, 0xff00ff)
+          //bot.viewer.drawLine('path', path, 0xff00ff)
         })
 
         const mcData = require('minecraft-data')(bot.version)
@@ -205,7 +232,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           const button_state = 0;
 
           if (button === button_state) {
-          const p = block.position.offset(0, 1, 0)
+          p = block.position.offset(0, 1, 0)
 
           bot.pathfinder.setMovements(defaultMove)
           bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
@@ -213,6 +240,18 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             dig(bot, interaction, block.name)
           }
         })
+
+      //add
+        bot.on("physicsTick", () => {
+          if(!p) return
+          if(bot.entity.position.distanceTo(p) < 1) {
+            p = null
+            bot.setControlState("forward", false)
+            bot.setControlState("jump", false)
+            return
+          }
+  bot.movement.steer(p, 8, "average")
+}); 
       }
 
     })
@@ -248,6 +287,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         return collector.stop()
       }
       if (movement_array.includes(i.customId)) {
+        p = null
         if (i.customId === "jump") {
 
           bot.setControlState(i.customId, true)
