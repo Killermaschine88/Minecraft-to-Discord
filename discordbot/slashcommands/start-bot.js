@@ -20,13 +20,13 @@ module.exports = {
     
     if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
-    const menu = await interaction.editReply({ content: 'Starting Minecraft Bot', fetchReply: true })
+    const menu = await interaction.editReply({ content: 'Starting Minecraft Bot'})
 
     const bot = mineflayer.createBot({
       host: interaction.options.getString('ip'),
       username: process.env.MINECRAFT_EMAIL,
       password: process.env.MINECRAFT_PASSWORD,
-    version: "1.8.9",
+      version: "1.8.9",
       viewDistance: 'tiny',
       colorsEnabled: false,
       skinParts: {
@@ -41,25 +41,23 @@ module.exports = {
 
     bot.loadPlugin(movement.plugin);
 
-    /*let proximity = new movement.heuristics.proximity();
-let conformity = new movement.heuristics.conformity();
-let distance = new movement.heuristics.distance();
-let danger = new movement.heuristics.danger();*/
+
     let proximity = new movement.heuristics.proximity({
     weighting: 10
 });
 let conformity = new movement.heuristics.conformity({
-    weighting: 5
+    weighting: 10
 });
 let distance = new movement.heuristics.distance({
     weighting: 10,
-    radius: 5,
+    radius: 3,
     count: 10,
-    sectorLength: 0.25
+    sectorLength: 0.5
 });
 let danger = new movement.heuristics.danger({
   weighting: 0.1
-});
+}); 
+
 
     const embed = new Discord.MessageEmbed()
     .setTitle(`Online on ${interaction.options.getString('ip')}`)
@@ -79,7 +77,8 @@ let danger = new movement.heuristics.danger({
     //General Events
     bot.on("login", () => {
       console.log({ login: true })
-      bot.movement.loadHeuristics(proximity, conformity, distance, danger);
+      bot.entities = {}
+      bot.movement.loadHeuristics(proximity, distance, danger);
     })
 
     bot.on("kicked", (reason, loggedIn) => {
@@ -251,7 +250,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             return
           }
           bot.setControlState("sprint", true)
-  bot.movement.steer(p, 25, "average")
+  bot.movement.steer(p, 10, "average")
+        //  bot.movement.steer(p, 8, "average")
 }); 
       }
 
@@ -273,8 +273,17 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const change_row = ["previous", "next"]
 
     collector.on("collect", async (i) => {
+
+//console.log(bot.players)
+     // const lines = bot.scoreboard.sidebar.items.map(e => e.displayName.toString())  
+
+      
       const sb = parseScoreboard(bot)
-      embed.setFooter(`❤️ Health: ${sb.health}\n💰 Purse: ${sb.coins}`)
+
+      const players_nearby = Object.values(bot.players).filter(a => a.uuid.charAt(14) == 4 && a.entity && a.ping == 1).length
+
+      
+      embed.setFooter(`❤️ Health: ${sb.health}\n💰 Purse: ${sb.coins}\nPlayers nearby: ${players_nearby}`)
       
       await i.deferUpdate()
       if (i.user.id !== interaction.user.id) return
@@ -299,7 +308,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           //make bot move for 1 second into said direction
           bot.setControlState(i.customId, true)
           await sleep(1000)
-          bot.clearControlStates()
+          bot.setControlState(i.customId, false)
         }
 
       } else if (i.customId === "message") {
@@ -385,8 +394,15 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             content = content.next().value.content
             let message = collected.values()
             interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
+
+            const mcData = require('minecraft-data')(bot.version)
+
+            if(mcData.blockByName[content]) {
             block_to_mine = content;
             embed.setDescription(`set block to mine to ${content}`)
+            } else {
+              embed.setDescription(`${block} isnt a valid block name`)
+            }
             interaction.editReply({embeds: [embed]})
           })
           .catch(collected => {
