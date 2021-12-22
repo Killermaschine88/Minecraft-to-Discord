@@ -132,6 +132,19 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             return interaction.editReply({embeds: [embed], components: [row1, row2, current_row]})
     })
 
+    const warp_select = new Discord.MessageSelectMenu()
+			.setCustomId('quick_walk')
+			.setMaxValues(1)
+			.setMinValues(1);
+
+    const data = [
+      { label: "Bank", value: "bank" },
+      { label: "Bazaar", value: "bazaar" },
+      { label: "Auction House", value: "auction_house" }
+    ]
+
+    warp_select.addOptions(data)
+
     const kill_button = new Discord.MessageButton().setEmoji('❌').setCustomId('kill').setStyle('DANGER');
 
     const forward_button = new Discord.MessageButton().setEmoji('⬆️').setCustomId('forward').setStyle('PRIMARY');
@@ -180,7 +193,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block, nearby_blocks_button)
     current_row.addComponents(show_lore)
 
-    const utility_row1 = new Discord.MessageActionRow().addComponents(switch_hub_button)
+    const utility_row2 = new Discord.MessageActionRow().addComponents(switch_hub_button)
+
+    const utility_row1 = new Discord.MessageActionRow().addComponents(warp_select)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -266,7 +281,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     })
 
     const collector = menu.createMessageComponentCollector({
-      componentType: 'BUTTON',
+      //componentType: ['BUTTON', 'SELECT_MENU'],
       time: 840000, //14 mins
     });
 
@@ -278,7 +293,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     const global_actions = ["show_lore"]
 
-    const utility_actions = ["switch_hub"]
+    const utility_actions = ["switch_hub", "quick_walk"]
 
     const change_row = ["previous", "next"]
 
@@ -428,6 +443,7 @@ matching: (block) => block.position.distanceTo(bot.entity.position) < 4,
         let str = '';
 
         for(const block of blocks) {
+          //console.log(block)
           
           let bl = bot.blockAt(block)
           if(!data.find(b => b.name === bl.name || b.displayName === bl.displayName)) {
@@ -588,7 +604,7 @@ interaction.editReply({embeds: [embed]})
             current_row.components[0].label = "Utility (3/3)"
           current_row.components[2].disabled = true
           current_row.components[1].disabled = false
-          interaction.editReply({components: [utility_row1, current_row]})
+          interaction.editReply({components: [utility_row1, utility_row2, current_row]})
           }
         } else if(currentRow === 3) {
           currentRow = 2
@@ -603,24 +619,34 @@ interaction.editReply({embeds: [embed]})
           const defaultMove = new Movements(bot, mcData)
           
           bot.chat("/hub")
-          await sleep(500)
-          //add going to npc clickimg etc
+          await sleep(750)
+          bot.chat("/hub")
+          await sleep(250)
+          //add going to npc clicking etc
           bot.pathfinder.setMovements(defaultMove)
-    bot.pathfinder.setGoal(new GoalBlock(-11, 70, -67))
+          p = { x: -11, y: 70, z: -67}
+    bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
 
           await sleep(3000)
 
           const entity = bot.nearestEntity(entity => entity.position.x === -10 && entity.position.y === 70 && entity.position.z === -67 && entity.id === 1021) //Hub Selector
-          console.log(entity)
+          //console.log(entity)
           bot.activateEntity(entity)
+          await sleep(1500)
+          bot.simpleClick.leftClick(49)
+        } else if(i.customId === 'quick_walk') {
 
-          const inter = setInterval(() => {
-            if(bot.currentWindow) {
-              clearInterval(inter)
-              bot.simpleClick.leftMouse(49)
-              interaction.followUp({content: "switched hub", ephemeral: true})
-            }
-          })
+          const mcData = require('minecraft-data')(bot.version)
+          const defaultMove = new Movements(bot, mcData)
+          bot.pathfinder.setMovements(defaultMove)
+          
+          const area = i.values[0]
+          p = getCoords(area)
+          
+
+          bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
+            interaction.followUp({content: `started traveling to ${area}`, ephemeral: true})
+        
         }
       } //add next group
 
@@ -648,4 +674,14 @@ function pingUser(interaction) {
       msg.delete()
     }, 5000)
   })
+}
+
+function getCoords(area) {
+  if(area === "bank") {
+    return { x: -24, y: 71, z: -58 }
+  } else if(area === "bazaar") {
+    return { x: -39, y: 70, z: -78 }
+  } else if(area === "auction_house") {
+    return { x: -31.5, y: 73, z: -95 }
+  }
 }

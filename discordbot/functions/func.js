@@ -21,6 +21,9 @@ async function dig (bot, interaction, block) {
 
     if (target && bot.canDigBlock(target)) {
       bot.tool.equipForBlock(target, {})
+      if(bot.quickBarSlot === 8) {
+        bot.quickBarSlot = 0
+      }
       interaction.editReply({ content: `starting to dig ${target.name}`})
       try {
       await bot.dig(target, true, 'raycast')
