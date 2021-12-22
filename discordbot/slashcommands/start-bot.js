@@ -9,9 +9,12 @@ const toolPlugin = require('mineflayer-tool').plugin
 const { npc_row1 } = require('../constants/rows/npc/row.js')
 const movement = require('mineflayer-movement')
 
+
 module.exports = {
   name: "start-bot",
   async execute(interaction) {
+
+    //current line 424
 
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
     let editDisabled = false
@@ -161,6 +164,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const attack_button = new Discord.MessageButton().setLabel('⚔️').setCustomId('attack').setStyle('DANGER')
 
     const switch_hub_button = new Discord.MessageButton().setLabel('Switch Hub').setCustomId('switch_hub').setStyle('SECONDARY')
+
+    const nearby_blocks_button = new Discord.MessageButton().setLabel('Nearby Blocks').setCustomId('nearby_blocks').setStyle('SECONDARY')
  
       
 
@@ -172,7 +177,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     //const row3 = new Discord.MessageActionRow().addComponents().addComponents()
 
-    const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block)
+    const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block, nearby_blocks_button)
     current_row.addComponents(show_lore)
 
     const utility_row1 = new Discord.MessageActionRow().addComponents(switch_hub_button)
@@ -266,7 +271,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     });
 
 
-    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact", "attack", "set_block"]
+    const player_actions = ["kill", "jump", "forward", "left", "right", "back", "jump", "message", "mine", "turn", "interact", "attack", "set_block", "nearby_blocks"]
     const npc_actions = ["close_npc", "leftclick_npc_slot", "rightclick_npc_slot", "refresh"]
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
@@ -414,6 +419,32 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             embed.setDescription('Nothing said to execute/send within 30 Seconds')
             return interaction.editReply({embeds: [embed]})
           });
+      } else if(i.customId === "nearby_blocks") {
+        const blocks = bot.findBlocks({
+matching: (block) => block.position.distanceTo(bot.entity.position) < 4,
+          count: 50
+})
+        let data = []
+        let str = '';
+
+        for(const block of blocks) {
+          
+          let bl = bot.blockAt(block)
+          if(!data.find(b => b.name === bl.name || b.displayName === bl.displayName)) {
+            //console.log(bl)
+            data.push({
+              name: bl.name,
+              displayName: bl.displayNams
+            })
+            str += `Name: **${bl.name}**, Display: **${bl.displayName}**\n`
+          } else {
+            continue;
+          }
+        }
+
+        interaction.followUp({content: `${str}`, ephemeral: true})
+        data = []
+        str = ''
       }
       } else if(npc_actions.includes(i.customId)) {
         if(i.customId === "close_npc") {
