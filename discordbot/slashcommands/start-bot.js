@@ -106,7 +106,7 @@ let danger = new movement.heuristics.danger({
 
       const msg = parseMessage(message, username)
 
-      interaction.client.channels.cache.get(process.env.CHAT_LOGS_CHANNEL).send({content: `${msg}`})
+      //interaction.client.channels.cache.get(process.env.CHAT_LOGS_CHANNEL).send({content: `${msg}`})
       return
     })
 
@@ -152,13 +152,15 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     const leftclick_npc_slot = new Discord.MessageButton().setLabel('Click Inv').setCustomId('leftclick_npc_slot').setStyle('SECONDARY')
 
-    const current_shown = new Discord.MessageButton().setLabel('Main (1/2)').setCustomId('0').setStyle('SECONDARY').setDisabled(true)
+    const current_shown = new Discord.MessageButton().setLabel('Main (1/3)').setCustomId('0').setStyle('SECONDARY').setDisabled(true)
     const row_back_button = new Discord.MessageButton().setLabel('Previous').setCustomId('previous').setStyle('SECONDARY').setDisabled(true)
     const row_next_button = new Discord.MessageButton().setLabel('Next').setCustomId('next').setStyle('SECONDARY')
 
     const show_lore = new Discord.MessageButton().setLabel('Show Lore').setCustomId('show_lore').setStyle('SECONDARY')
     
     const attack_button = new Discord.MessageButton().setLabel('⚔️').setCustomId('attack').setStyle('DANGER')
+
+    const switch_hub_button = new Discord.MessageButton().setLabel('Switch Hub').setCustomId('switch_hub').setStyle('SECONDARY')
  
       
 
@@ -171,8 +173,9 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     //const row3 = new Discord.MessageActionRow().addComponents().addComponents()
 
     const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block)
-
     current_row.addComponents(show_lore)
+
+    const utility_row1 = new Discord.MessageActionRow().addComponents(switch_hub_button)
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -269,6 +272,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const movement_array = ["left", "right", "forward", "back", "jump"]
 
     const global_actions = ["show_lore"]
+
+    const utility_actions = ["switch_hub"]
 
     const change_row = ["previous", "next"]
 
@@ -468,7 +473,7 @@ interaction.editReply({embeds: [embed]})
           //console.log(bot.currentWindow)
           if(!bot.currentWindow) {
             currentRow = 1
-          current_row.components[0].label = "Main (1/2)"
+          current_row.components[0].label = "Main (1/3)"
           current_row.components[2].disabled = false
           current_row.components[1].disabled = true
             embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
@@ -531,20 +536,60 @@ interaction.editReply({embeds: [embed]})
           })
         }
       } else if(change_row.includes(i.customId)) {
+        //console.log(currentRow)
         if(currentRow === 1) {
   
           currentRow = 2
-          current_row.components[0].label = "Mining (2/2)"
-          current_row.components[2].disabled = true
+          current_row.components[0].label = "Mining (2/3)"
+          current_row.components[2].disabled = false
           current_row.components[1].disabled = false
           interaction.editReply({components: [mining_row, current_row]})
         } else if(currentRow === 2) {
+          if(i.customId === "previous") {
           
           currentRow = 1
-          current_row.components[0].label = "Main (1/2)"
+          current_row.components[0].label = "Main (1/3)"
           current_row.components[2].disabled = false
           current_row.components[1].disabled = true
           interaction.editReply({components: [row1, row2, current_row]})
+          } else if(i.customId === "next") {
+            currentRow = 3
+            current_row.components[0].label = "Utility (3/3)"
+          current_row.components[2].disabled = true
+          current_row.components[1].disabled = false
+          interaction.editReply({components: [utility_row1, current_row]})
+          }
+        } else if(currentRow === 3) {
+          currentRow = 2
+          current_row.components[0].label = "Mining (2/3)"
+          current_row.components[2].disabled = false
+          current_row.components[1].disabled = false
+          interaction.editReply({components: [mining_row, current_row]})
+        }
+      } else if(utility_actions.includes(i.customId)) {
+        if(i.customId === "switch_hub") {
+          const mcData = require('minecraft-data')(bot.version)
+          const defaultMove = new Movements(bot, mcData)
+          
+          bot.chat("/hub")
+          await sleep(500)
+          //add going to npc clickimg etc
+          bot.pathfinder.setMovements(defaultMove)
+    bot.pathfinder.setGoal(new GoalBlock(-11, 70, -67))
+
+          await sleep(3000)
+
+          const entity = bot.nearestEntity(entity => entity.position.x === -10 && entity.position.y === 70 && entity.position.z === -67 && entity.id === 1021) //Hub Selector
+          console.log(entity)
+          bot.activateEntity(entity)
+
+          const inter = setInterval(() => {
+            if(bot.currentWindow) {
+              clearInterval(inter)
+              bot.simpleClick.leftMouse(49)
+              interaction.followUp({content: "switched hub", ephemeral: true})
+            }
+          })
         }
       } //add next group
 
