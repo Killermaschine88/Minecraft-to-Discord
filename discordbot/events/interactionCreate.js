@@ -4,7 +4,15 @@ module.exports = {
   name: "interactionCreate",
   async execute(interaction) {
 
+    if(interaction.isAutocomplete()) {
+      const data = [
+        { name: 'hypixel.net', value: 'hypixel.net' }
+      ]
+      interaction.respond(data)
+    }
+
     if(!interaction.isCommand()) return
+
     //console.log(interaction)
     if(!interaction.client.slashcommands.get(interaction.commandName)) return
     if(!interaction) return

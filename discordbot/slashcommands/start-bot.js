@@ -4,7 +4,7 @@ const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 const { pathfinder, Movements } = require('mineflayer-pathfinder')
 const { GoalBlock } = require('mineflayer-pathfinder').goals
-const { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore } = require('../functions/func.js')
+const { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore, format } = require('../functions/func.js')
 const toolPlugin = require('mineflayer-tool').plugin
 const { npc_row1 } = require('../constants/rows/npc/row.js')
 const movement = require('mineflayer-movement')
@@ -13,7 +13,6 @@ const movement = require('mineflayer-movement')
 module.exports = {
   name: "start-bot",
   async execute(interaction) {
-
     //current line 424
 
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
@@ -82,6 +81,10 @@ let danger = new movement.heuristics.danger({
       console.log({ login: true })
       bot.entities = {}
       bot.movement.loadHeuristics(proximity, distance, danger);
+
+      setTimeout(() => {
+        bot.chat('/locraw')
+      }, 1000)
     })
 
     bot.on("kicked", (reason, loggedIn) => {
@@ -96,12 +99,30 @@ let danger = new movement.heuristics.danger({
     })
 
     bot.on("message", async (message) => {
-      const msg = parseMessage(message)
-      //console.log(message)
 
-      if(!msg) return
+      if(message.json.text.includes("server") && message.json.color === 'white') {
+        const obj = JSON.parse(message.json.text)
+        if(obj.mode) {
+          return interact.followUp({content: `Game: ${obj.gametype || 'Null'}\nArea: ${obj.mode || 'Null'}`, ephemeral: true})
+        } else {
+          return interact.followUp({content: `Server: ${obj.server}`, ephemeral: true})
+        }
+      }
+      
+      if (message.toString().trim() === '') return
+      message = message.toString()
+      message.replace('>>>', '')
+      message.replace('<<<', '')
+      const ignore = ['Mana']
+      for(const no of ignore) {
+        if(message.includes(no)) {
+          return
+        } else {
+          continue;
+        }
+      }
 
-      interaction.client.channels.cache.get(process.env.MESSAGE_LOGS_CHANNEL).send({content: `${msg}`})
+      interaction.client.channels.cache.get(process.env.MESSAGE_LOGS_CHANNEL).send({content: `> ${message}`})
       return
     })
 
@@ -133,6 +154,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     })
 
     const warp_select = new Discord.MessageSelectMenu()
+      .setPlaceholder('Location to walk to...')
 			.setCustomId('quick_walk')
 			.setMaxValues(1)
 			.setMinValues(1);
@@ -179,6 +201,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const switch_hub_button = new Discord.MessageButton().setLabel('Switch Hub').setCustomId('switch_hub').setStyle('SECONDARY')
 
     const nearby_blocks_button = new Discord.MessageButton().setLabel('Nearby Blocks').setCustomId('nearby_blocks').setStyle('SECONDARY')
+
+    const display_inventory_button = new Discord.MessageButton().setLabel('Display Inventory').setCustomId('display_inventory').setStyle('SECONDARY')
  
       
 
@@ -193,9 +217,11 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block, nearby_blocks_button)
     current_row.addComponents(show_lore)
 
-    const utility_row2 = new Discord.MessageActionRow().addComponents(switch_hub_button)
+    const utility_row2 = new Discord.MessageActionRow().addComponents(switch_hub_button, display_inventory_button)
 
     const utility_row1 = new Discord.MessageActionRow().addComponents(warp_select)
+
+    
 
     let choosenBoolean;
     if (interaction.options.getString('first-person') === 'true') {
@@ -251,7 +277,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
            * 3 = First Mouse Button
            * 4 = Second Mouse Button
            */
-          const button_state = 0;
+          const button_state = 4;
 
           if (button === button_state) {
           p = block.position.offset(0, 1, 0)
@@ -291,13 +317,15 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     
     const movement_array = ["left", "right", "forward", "back", "jump"]
 
-    const global_actions = ["show_lore"]
+    const global_actions = ["show_lore", "display_inventory"]
 
     const utility_actions = ["switch_hub", "quick_walk"]
 
     const change_row = ["previous", "next"]
 
     collector.on("collect", async (i) => {
+
+      //console.log(utility_row1)
 
 //console.log(bot.players)
      // const lines = bot.scoreboard.sidebar.items.map(e => e.displayName.toString())  
@@ -412,15 +440,19 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
         bot.attack(entity)
         }
       } else if(i.customId === "set_block") {
-        //
+        interaction.editReply({content: 'say the block name to set as quick mine block'})
+        const filter = m => m.author.id === interaction.user.id;
+
         await interaction.channel.awaitMessages({ filter, max: 1, time: 30000, errors: ['time'] })
           .then(collected => {
+            //console.log(collected)
             let content = collected.values()
-            content = content.next().value.content
+            content = content.next().value.content.toLowerCase()
             let message = collected.values()
             interaction.channel.messages.fetch(message.next().value.id).then(msg => msg.delete())
 
             const mcData = require('minecraft-data')(bot.version)
+            console.log(mcData.blocksByName[content])
 
             if(mcData.blockByName[content]) {
             block_to_mine = content;
@@ -431,7 +463,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
             interaction.editReply({embeds: [embed]})
           })
           .catch(collected => {
-            embed.setDescription('Nothing said to execute/send within 30 Seconds')
+            console.log(collected)
+            embed.setDescription('Nothing said to execute/send within 30 Seconds or block not found')
             return interaction.editReply({embeds: [embed]})
           });
       } else if(i.customId === "nearby_blocks") {
@@ -572,14 +605,14 @@ interaction.editReply({embeds: [embed]})
           }
           const lore = parseLore(inv, slotToClick, bot)
 
-          const displayEmbed = new Discord.MessageEmbed().setTitle('Item Lore').setColor('GREEN').setDescription(`**Name:** ${lore.name} ${getEmoji({name: lore.name, id: lore.id})}\n**ID:** ${lore.id}\n**Lore:** ${lore.lore}`).setFooter("This message automatically gets deleted after 30 seconds.")
+          const displayEmbed = new Discord.MessageEmbed().setTitle('Item Lore').setColor('GREEN').setDescription(`**Name:** ${format(lore.name)} ${getEmoji({name: lore.name, id: lore.id})}\n**ID:** ${lore.id}\n**Lore:** ${format(lore.lore)}`).setFooter("This message automatically gets deleted after 15 seconds.")
 
           interaction.followUp({embeds: [displayEmbed]}).then(msg => {
             setTimeout(() => {
               try {
                 msg.delete()
               } catch (e) {}
-            }, 30000)
+            }, 15000)
           })
         }
       } else if(change_row.includes(i.customId)) {

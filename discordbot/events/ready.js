@@ -14,6 +14,7 @@ module.exports = {
             description: "1.8.9 server ip",
             type: "STRING",
             required: true,
+            autocomplete: true,
           },
           {
             name: "first-person",

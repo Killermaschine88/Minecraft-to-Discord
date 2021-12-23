@@ -66,6 +66,14 @@ function snakeFormatter(words, state) {
     return "CRAFTING_PLUS"
   } else if(words.toLowerCase().includes('golden')) {
     words = words.replace('golden', 'gold')
+  } else if(words.toLowerCase().includes('redstone torch')) {
+    return "REDSTONE_TORCH_ON"
+  } else if(words.toLowerCase().includes('poppy')) {
+    return 'GOLEM_POPPY'
+  } else if(words.toLowerCase().includes('clock')) {
+    return 'ENCHANTED_CLOCK'
+  } else if(words.toLowerCase().includes('repeater')) {
+    return 'REDSTONE_COMPARATOR'
   }
 
 
@@ -86,6 +94,8 @@ function renderInventory(bot, interaction, npc) {
   let max = 0
   const maxRow = 9
   let maxShown = 0
+  let added = false
+  const nbt = require('prismarine-nbt')
 
   if(!bot.slots) return 'No Inventory'
 
@@ -103,9 +113,19 @@ function renderInventory(bot, interaction, npc) {
     if(!item) {
       str += '<:inv_slot:919349781594247188>'
     } else {
-      if(emojis[snakeFormatter(item.name, true)]) {
+
+      const data = nbt.simplify(item.nbt)
+     //console.log(data.ExtraAttributes?.id)
+      if(data.ExtraAttributes?.id) {
+        if(emojis[data.ExtraAttributes.id]) {
+          added = true
+          str += emojis[data.ExtraAttributes.id].formatted
+        }
+      } else if(emojis[snakeFormatter(item.name, true)] && !added) {
+        added = true
         str += emojis[snakeFormatter(item.name, true)].formatted
-      } else if(emojis[snakeFormatter(item.displayName, false)]) {
+      } else if(emojis[snakeFormatter(item.displayName, false)] && !added) {
+        added = true
         str += emojis[snakeFormatter(item.displayName, false)].formatted
       } else {
         str += '<:missing_texture:919358315421663302>' 
@@ -119,6 +139,7 @@ function renderInventory(bot, interaction, npc) {
     
     i++
     max++
+    added = false
     
     if(i === maxRow) {
       str += '\n'
@@ -149,7 +170,7 @@ function getEmoji(word) {
 
 function parseMessage(message, username) {
   if(username) {
-    return `${username}: ${message}`
+    return `${username}: ${format(message)}`
   } else {
 
   if(!message.extra) {
@@ -167,6 +188,7 @@ function parseMessage(message, username) {
       if(!m.text || m.text == '' || m.text == ' ' || m.text == '  ') continue;
       msg += m.text
     }
+    msg = format(msg)
     return msg
   }
   }
@@ -273,4 +295,8 @@ function parseLore(inv, slotToClick, bot) {
   }
 }
 
-module.exports = { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore }
+function format(word) {
+  return word.replace(/\u00A7[0-9A-FK-OR]/gi, '')
+}
+
+module.exports = { dig, onDiggingCompleted, renderInventory, getEmoji, parseMessage, parseScoreboard, parseLore, format }
