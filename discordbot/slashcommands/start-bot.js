@@ -19,6 +19,7 @@ module.exports = {
     let editDisabled = false
     let currentRow = 1;
     let block_to_mine = '';
+    let button_click_type = 0;
     
     if(hypixel_ip.includes(interaction.options.getString('ip')) && interaction.user.id !== "570267487393021969") return interaction.editReply('no hypixel')
 
@@ -103,9 +104,9 @@ let danger = new movement.heuristics.danger({
       if(message.json.text.includes("server") && message.json.color === 'white') {
         const obj = JSON.parse(message.json.text)
         if(obj.mode) {
-          return interact.followUp({content: `Game: ${obj.gametype || 'Null'}\nArea: ${obj.mode || 'Null'}`, ephemeral: true})
+          return interaction.followUp({content: `Game: ${obj.gametype || 'Null'}\nArea: ${obj.mode == 'dynamic' ? 'Island' : obj.mode}`, ephemeral: true})
         } else {
-          return interact.followUp({content: `Server: ${obj.server}`, ephemeral: true})
+          return interaction.followUp({content: `Server: ${obj.server}`, ephemeral: true})
         }
       }
       
@@ -203,6 +204,8 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const nearby_blocks_button = new Discord.MessageButton().setLabel('Nearby Blocks').setCustomId('nearby_blocks').setStyle('SECONDARY')
 
     const display_inventory_button = new Discord.MessageButton().setLabel('Display Inventory').setCustomId('display_inventory').setStyle('SECONDARY')
+
+    const change_click_type_button = new Discord.MessageButton().setLabel('Change Type').setCustomId('change_click_type').setStyle('SECONDARY')
  
       
 
@@ -217,7 +220,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
     const mining_row = new Discord.MessageActionRow().addComponents(mine_button, set_block, nearby_blocks_button)
     current_row.addComponents(show_lore)
 
-    const utility_row2 = new Discord.MessageActionRow().addComponents(switch_hub_button, display_inventory_button)
+    const utility_row2 = new Discord.MessageActionRow().addComponents(switch_hub_button, display_inventory_button, change_click_type_button)
 
     const utility_row1 = new Discord.MessageActionRow().addComponents(warp_select)
 
@@ -285,7 +288,16 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
           bot.pathfinder.setMovements(defaultMove)
           bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
           } else if(button === 3) {
+            /**
+             * Type 0 | Mine block
+             * Type 1 | Attack Mob
+             */
+            if(button_click_type === 0) {
             dig(bot, interaction, block.name)
+            } else if(button_click_type === 1) {
+              const entity = bot.nearestEntity(entity => entity.type === 'mob')
+              bot.attack(entity)
+            }
           }
         })
 
@@ -319,7 +331,7 @@ return interaction.editReply({embeds: [embed], components: [npc_row1]})
 
     const global_actions = ["show_lore", "display_inventory"]
 
-    const utility_actions = ["switch_hub", "quick_walk"]
+    const utility_actions = ["switch_hub", "quick_walk", "change_click_type"]
 
     const change_row = ["previous", "next"]
 
@@ -680,6 +692,12 @@ interaction.editReply({embeds: [embed]})
           bot.pathfinder.setGoal(new GoalBlock(p.x, p.y, p.z))
             interaction.followUp({content: `started traveling to ${area}`, ephemeral: true})
         
+        } else if(i.customId === 'change_click_type') {
+          if(button_click_type === 0) {
+            button_click_type = 1
+          } else if(button_click_type === 1) {
+            button_click_type = 0
+          }
         }
       } //add next group
 
@@ -705,7 +723,7 @@ function pingUser(interaction) {
   interaction.followUp({content: `<@${interaction.user.id}>`}).then(msg => {
     setTimeout(() => {
       msg.delete()
-    }, 5000)
+    }, 1)
   })
 }
 
