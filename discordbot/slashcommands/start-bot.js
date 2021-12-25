@@ -21,7 +21,8 @@ const {
 } = require('../functions/func.js')
 const toolPlugin = require('mineflayer-tool').plugin
 const {
-  npc_row1
+  npc_row1,
+  npc_row2
 } = require('../constants/rows/npc/row.js')
 const movement = require('mineflayer-movement')
 
@@ -31,6 +32,7 @@ module.exports = {
   async execute(interaction) {
 
     const on_mobile = interaction.options.getString('play-on-mobile') == 'yes' ? true : false
+    const ip = interaction.options.getString('ip').toLowerCase()
 
     const hypixel_ip = ["mc.hypixel.net", "hypixel.net", "stuck.hypixel.net", "beta.hypixel.net"]
     let editDisabled = false
@@ -45,7 +47,7 @@ module.exports = {
     })
 
     const bot = mineflayer.createBot({
-      host: interaction.options.getString('ip'),
+      host: ip,
       username: process.env.MINECRAFT_EMAIL,
       password: process.env.MINECRAFT_PASSWORD,
       version: "1.8.9",
@@ -104,11 +106,11 @@ module.exports = {
       bot.entities = {}
       bot.movement.loadHeuristics(proximity, distance, danger);
 
-      if(interaction.options.getString('ip').toLowerCase() === 'hypixel.net') {
+      /*if(ip === 'hypixel.net') {
         setTimeout(() => {
         bot.chat('/locraw')
-        }, 1000)
-      }
+        }, 3000)
+      }*/
     })
 
     bot.on("kicked", (reason, loggedIn) => {
@@ -150,9 +152,9 @@ module.exports = {
       message = message.toString()
       message.replace('>>>', '')
       message.replace('<<<', '')
-      const ignore = ['Mana']
+      const ignore = ['Mana', 'happy', 'click here', 'snow', 'unclaimed ',]
       for (const no of ignore) {
-        if (message.includes(no)) {
+        if (message.toLowerCase().includes(no.toLowerCase())) {
           return
         } else {
           continue;
@@ -181,7 +183,7 @@ module.exports = {
 
       return interaction.editReply({
         embeds: [embed],
-        components: [npc_row1]
+        components: [npc_row1, npc_row2]
       })
     })
 
@@ -295,7 +297,7 @@ module.exports = {
 
     const display_inventory_button = new Discord.MessageButton().setLabel('Display Inventory').setCustomId('display_inventory').setStyle('SECONDARY')
 
-
+    npc_row2.addComponents(display_inventory_button)
 
     const current_row = new Discord.MessageActionRow().addComponents(current_shown, row_back_button, row_next_button, interact_button)
 
@@ -327,6 +329,11 @@ module.exports = {
     let p = null;
 
     bot.once("spawn", async () => {
+
+      if(ip === 'hypixel.net') {
+        await sleep(500)
+        bot.chat('/play sb')
+      }
       mineflayerViewer(bot, {
         port: 3000,
         firstPerson: choosenBoolean
@@ -834,26 +841,32 @@ module.exports = {
           const displayEmbed = new Discord.MessageEmbed().setTitle('Item Lore').setColor('GREEN').setDescription(`**Name:** ${format(lore.name)} ${getEmoji({name: lore.name, id: lore.id})}\n**ID:** ${lore.id}\n**Lore:** ${format(lore.lore)}`).setFooter("This message automatically gets deleted after 15 seconds.")
 
           interaction.followUp({
-            embeds: [displayEmbed]
-          }).then(msg => {
-            setTimeout(() => {
-              try {
-                msg.delete()
-              } catch (e) {}
-            }, 15000)
+            embeds: [displayEmbed],
+            ephemeral: true
           })
         } else if (i.customId === 'display_inventory') {
           let str = ''
+          let str2 = ''
+          const ignored_display = ['Stained Glass Pane']
           if (bot.currentWindow) {
-            console.log(bot.currentWindow.slots)
             for (const item of bot.currentWindow.slots) {
               if (!item) continue;
+              if(ignored_display.includes(item.name)) continue;
+              if(str.length <= 1800) {
               str += `${item.count}x ${item.displayName} (${item.name}) - Slot ${item.slot + 1}\n`
+              } else {
+                str2 += `${item.count}x ${item.displayName} (${item.name}) - Slot ${item.slot + 1}\n`
+              }
             }
           } else {
             for (const item of bot.inventory.slots) {
               if (!item) continue;
+              if(ignored_display.includes(item.name)) continue;
+              if(str.length <= 1800) {
               str += `${item.count}x ${item.displayName} (${item.name}) - Slot ${item.slot - 8}\n`
+              } else {
+                str += `${item.count}x ${item.displayName} (${item.name}) - Slot ${item.slot + 1}\n`
+              }
             }
           }
 
@@ -863,6 +876,13 @@ module.exports = {
             content: `${str}`,
             ephemeral: true
           })
+
+          if(str2 !== '') {
+            interaction.followUp({
+              content: `${str2}`,
+              ephemeral: true
+            })
+          }
         }
       } else if (change_row.includes(i.customId)) {
         //console.log(currentRow)
@@ -957,7 +977,7 @@ module.exports = {
         }
       } //add next group
 
-      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next", "refresh", "set_block"]
+      const no_default_edit = ["interact", "leftclick_npc_slot", "rightclick_npc_slot", "close_npc", "show_lore", "previous", "next", "refresh", "set_block", 'display_inventory']
       if (!no_default_edit.includes(i.customId)) {
         embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **${i.customId}** done executing.\n\n**Inventory**\n${renderInventory(bot.inventory, interaction, false)}`)
 

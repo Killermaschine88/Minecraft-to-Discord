@@ -15,6 +15,8 @@ const refresh = new MessageButton().setLabel("Refresh Window").setCustomId("refr
 //Different Rows
 const npc_row1 = new MessageActionRow().addComponents(npc_close, leftclick_npc_slot, rightclick_npc_slot, show_lore, refresh)
 
+const npc_row2 = new MessageActionRow()
+
 
 //Exporting Rows
-module.exports = { npc_row1 }
+module.exports = { npc_row1, npc_row2 }

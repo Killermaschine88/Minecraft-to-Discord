@@ -7,7 +7,7 @@ async function dig (bot, interaction, block) {
   //console.log(block)
 
   if (bot.targetDigBlock) {
-    interaction.editReply({ content: `already digging ${bot.targetDigBlock.name}`})
+    //interaction.editReply({ content: `already digging ${bot.targetDigBlock.name}`})
   }
  //console.log(mcData.blocksByName[block])
 
@@ -24,7 +24,7 @@ async function dig (bot, interaction, block) {
       if(bot.quickBarSlot === 8) {
         bot.setQuickBarSlot(0)
       }
-      interaction.editReply({ content: `starting to dig ${target.name}`})
+      //interaction.editReply({ content: `starting to dig ${target.name}`})
       try {
       await bot.dig(target, true, 'raycast')
       } catch (e) {
