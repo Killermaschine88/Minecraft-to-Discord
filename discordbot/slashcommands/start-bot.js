@@ -90,6 +90,7 @@ module.exports = {
 
     //Load useful Plugins
     bot.loadPlugin(toolPlugin)
+    interaction.client.bot = bot
 
     //Hypixel Limbo Fix
     bot._client.on('transaction', function(packet) {
@@ -152,7 +153,7 @@ module.exports = {
       message = message.toString()
       message.replace('>>>', '')
       message.replace('<<<', '')
-      const ignore = ['Mana', 'happy', 'click here', 'snow', 'unclaimed ',]
+      const ignore = ['Mana', 'happy', 'snow', 'unclaimed ',]
       for (const no of ignore) {
         if (message.toLowerCase().includes(no.toLowerCase())) {
           return
@@ -847,7 +848,7 @@ module.exports = {
         } else if (i.customId === 'display_inventory') {
           let str = ''
           let str2 = ''
-          const ignored_display = ['Stained Glass Pane']
+          const ignored_display = ['stained_glass_pane'] //name as in minecraft id
           if (bot.currentWindow) {
             for (const item of bot.currentWindow.slots) {
               if (!item) continue;

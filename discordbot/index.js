@@ -33,5 +33,5 @@ for (const file of slashcommandFolders) {
 
 //Debugging
 client.options.http.api = 'https://discordapp.com/api'
-
+process.on('warning', e => console.warn(e.stack));
 //client.on('debug', console.log)
