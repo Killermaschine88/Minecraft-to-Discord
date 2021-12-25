@@ -6,7 +6,8 @@ module.exports = {
 
     if(interaction.isAutocomplete()) {
       const data = [
-        { name: 'hypixel.net', value: 'hypixel.net' }
+        { name: 'hypixel.net', value: 'hypixel.net' },
+        { name: 'minesucht.net', value: 'minesucht.net' }
       ]
       interaction.respond(data)
     }

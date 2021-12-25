@@ -44,6 +44,18 @@ module.exports = {
               },
             ]
           },
+          {
+            name: "play-on-mobile",
+            description: "if you are playing on mobile",
+            type: "STRING",
+            required: false,
+            choices: [
+              {
+                name: "yes",
+                value: "yes"
+              },
+            ]
+          },
         ],
       },
       {
