@@ -73,6 +73,10 @@ module.exports = {
             required: true
           }
         ]
+      },
+      {
+        name: "fragbot",
+        description: "start fragbot"
       }
     ]
 

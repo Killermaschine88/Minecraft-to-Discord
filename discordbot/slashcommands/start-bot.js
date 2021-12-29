@@ -337,7 +337,8 @@ module.exports = {
       }
       mineflayerViewer(bot, {
         port: 3000,
-        firstPerson: choosenBoolean
+        firstPerson: choosenBoolean,
+        viewDistance: 3
       })
       await interaction.editReply({
         embeds: [embed],
@@ -362,9 +363,9 @@ module.exports = {
           if (r.status === "success") {
 
             embed.setDescription(`[Browser](https://Minecraft-to-Discord.baltrazz.repl.co)\nAction **move via browser** done executing.\n\n**Inventory**\n${renderInventory(bot, interaction)}`)
-            interaction.editReply({
+            /*interaction.editReply({
               embeds: [embed]
-            })
+            })*/
           }
           const path = [bot.entity.position.offset(0, 0.5, 0)]
           for (const node of r.path) {
@@ -404,7 +405,6 @@ module.exports = {
               dig(bot, interaction, block.name)
             } else if (button_click_type === 2) {
               const entity = bot.nearestEntity(entity => entity.type === 'mob')
-              console.log(entity)
               bot.lookAt(entity.position)
               return
               bot.attack(entity)
@@ -430,18 +430,17 @@ module.exports = {
                 dig(bot, interaction, block.name)
               } else if (button_click_type === 2) {
                 const entity = bot.nearestEntity(entity => entity.type === 'mob')
-                console.log(entity)
+                if(!entity) return
+                bot.equip('283', 'hand')
                 bot.lookAt(entity.position)
-                const item = bot.inventory.slots.find(item => item.name.toLowerCase().includes('sword'))
-                const current = bot.getEquipmentDestSlot("hand")
-                console.log(item)
-                console.log(current)
-                if (!item) {
-
+                //const item = bot.inventory.slots.find(i => i !== null && i.)
+                //console.log(item)
+                //const current_slot = bot.getEquipmentDestSlot("hand")
+                if (!item || item.slots === current_slot) {
+                  console.log('sword already equipped')
                 } else {
-                  bot.equip(item, 'hand')
+                  bot.equip('283', 'hand')
                 }
-                return
                 bot.attack(entity)
               }
             }

@@ -11,6 +11,8 @@ client.slashcommands = new Discord.Collection()
 //Login
 client.login(process.env.DISCORD_TOKEN)
 
+global.dclient = client
+
 //Event Handler
 const eventFiles = fs.readdirSync('./discordbot/events').filter((file) => file.endsWith('.js'));
 
