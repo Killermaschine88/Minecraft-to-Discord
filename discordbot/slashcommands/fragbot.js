@@ -93,7 +93,7 @@ module.exports = {
                   in_party = false
                   bot.chat('/p leave')
                   return
-                }, 15000)
+                }, 7500)
               }
             }
           }
