@@ -13,7 +13,7 @@ module.exports = {
       interaction.editReply('starting . . .')
     }
 
-    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats']
+    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken']
     let sent = false
     let in_party = false
     let locationCheck = false
