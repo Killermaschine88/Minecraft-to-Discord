@@ -85,12 +85,12 @@ module.exports = {
                 bot.chat(m.clickEvent.value)
                 await sleep(1000)
                 bot.chat(`/pc Thanks for using me as a Fragbot. Uses since Bot started ${uses}`)
+                botUse(m, uses)
                 uses++
                 setTimeout(() => {
                   in_party = false
                   bot.chat('/p leave')
                 }, 15000)
-                dclient.channels.cache.get('925793437318541382').send({content: `${m.clickEvent.value}`})
               }
             }
           }
@@ -112,6 +112,10 @@ async function visitIsland(bot) {
         await sleep(300)
         bot.setControlState('forward', false)
   dclient.channels.cache.get('925804248908828692').send({content: `Reached AFK Pool. <t:${(Date.now() / 1000).toFixed()}:f>`})
+}
+
+function botUse(m, uses) {
+  dclient.channels.cache.get('925793437318541382').send({content: `**${m.clickEvent.value.slice(14)}** partied me. **${uses}** since i started.`})
 }
 
 const sleep = async (ms) => {
