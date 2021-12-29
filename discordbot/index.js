@@ -37,8 +37,9 @@ for (const file of slashcommandFolders) {
 client.options.http.api = 'https://discordapp.com/api'
 process.on('warning', e => console.warn(e.stack));
 //client.on('debug', console.log)
-global.fragbotstate = true
 
+
+global.fragbotstate = true
 
 if(fragbotstate) {
   client.slashcommands.get('fragbot').execute()

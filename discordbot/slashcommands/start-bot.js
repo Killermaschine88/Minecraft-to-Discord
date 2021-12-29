@@ -513,6 +513,12 @@ module.exports = {
         if (movement_array.includes(i.customId)) {
           if (i.customId === "jump") {
 
+            /*
+              bot.setQuickBarSlot(0)
+            await sleep(1000)
+            bot.activateItem()
+            */
+
             bot.setControlState(i.customId, true)
             bot.setControlState(i.customId, false)
             //so bot only jumps once
