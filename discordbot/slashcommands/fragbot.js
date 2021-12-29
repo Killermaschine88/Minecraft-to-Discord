@@ -13,7 +13,7 @@ module.exports = {
     interaction.editReply('starting . . .')
     }
 
-    const allowed_names = ['BaltrazYT', 'FriendlyGuy123', 'itsj4s0n']
+    global.allowed_names = ['baltrazyt', 'itsj4s0n']
     let sent = false
     let available = true
     let in_party = false
@@ -56,9 +56,7 @@ module.exports = {
       if(!fragbotstate) {
       interaction.editReply(`${bot.username} online!`)
       }
-      
       visitIsland(bot)
-      return
     })
 
     bot.on('kicked', (kicked, loggedIn) => {
@@ -69,6 +67,7 @@ module.exports = {
     })
 
     bot.on('message', async (msg) => {
+      //Visiting Island if warped to Limbo
       if(msg.text.includes('You are AFK.')) {
         console.log('sent to limbo')
         visitIsland(bot)
@@ -80,7 +79,7 @@ module.exports = {
         for(const m of msg.extra) {
           if(m.clickEvent) {
             for(const ign of allowed_names) {
-              if(m.clickEvent.value.toLowerCase().includes(ign.toLowerCase()) && !in_party) {
+              if(m.clickEvent.value.toLowerCase().includes(ign.toLowerCase()) && !in_party && m.clickEvent.value.startsWith('/party')) {
                 in_party = true
                 bot.chat(m.clickEvent.value)
                 await sleep(1000)
@@ -90,6 +89,7 @@ module.exports = {
                 setTimeout(() => {
                   in_party = false
                   bot.chat('/p leave')
+                  return
                 }, 15000)
               }
             }
@@ -115,7 +115,7 @@ async function visitIsland(bot) {
 }
 
 function botUse(m, uses) {
-  dclient.channels.cache.get('925793437318541382').send({content: `**${m.clickEvent.value.slice(14)}** partied me. **${uses}** since i started.`})
+  dclient.channels.cache.get('925793437318541382').send({content: `**${m.clickEvent.value.slice(14)}** partied me. **${uses}** use since i started.`})
 }
 
 const sleep = async (ms) => {
