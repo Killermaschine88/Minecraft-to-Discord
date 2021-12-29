@@ -7,9 +7,11 @@ module.exports = {
   name: "fragbot",
   async execute(interaction) {
 
+    if(!fragbotstate) {
     if(interaction.user.id !== '570267487393021969') return
 
     interaction.editReply('starting . . .')
+    }
 
     const allowed_names = ['BaltrazYT', 'FriendlyGuy123', 'itsj4s0n']
     let sent = false
@@ -44,14 +46,16 @@ module.exports = {
 
     bot.on('end', async (end) => {
       await sleep(10000)
-      dclient.slashcommands.get('fragbot').execute(interaction)
+      dclient.slashcommands.get('fragbot').execute()
     })
 
     bot.once('spawn', async () => {
       dclient.channels.cache.get('925799810722852964').send({content: `Bot logged into Hypixel. <t:${(Date.now() / 1000).toFixed()}:f>`})
       if(sent) return
       sent = true
+      if(!fragbotstate) {
       interaction.editReply(`${bot.username} online!`)
+      }
       
       visitIsland(bot)
       return
@@ -107,7 +111,7 @@ async function visitIsland(bot) {
         bot.setControlState('forward', true)
         await sleep(300)
         bot.setControlState('forward', false)
-  dclient.channels.cache.get('925804248908828692').send({content: 'Reached AFK Pool'})
+  dclient.channels.cache.get('925804248908828692').send({content: `Reached AFK Pool. <t:${(Date.now() / 1000).toFixed()}:f>`})
 }
 
 const sleep = async (ms) => {
