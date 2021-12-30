@@ -73,7 +73,6 @@ module.exports = {
         interaction.editReply(`${bot.username} online!`)
       }
       visitIsland(bot, false)
-      console.log('spawn visit')
     })
 
     bot.on('kicked', (kicked, loggedIn) => {
