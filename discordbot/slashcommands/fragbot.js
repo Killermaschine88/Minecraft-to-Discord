@@ -13,7 +13,7 @@ module.exports = {
       interaction.editReply('starting . . .')
     }
 
-    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken']
+    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken', 'kofmel', 'rosebloom']
     let sent = false
     let in_party = false
     let locationCheck = false
@@ -80,10 +80,6 @@ module.exports = {
       if (!loggedIn) {
         process.exit()
       }
-    })
-
-    bot.on('chat', (username, message) => {
-      console.log({user: username, message: message})
     })
 
     bot.on('message', async (msg) => {
