@@ -19,10 +19,6 @@ module.exports = {
     let locationCheck = false
     let uses = 1
 
-    setTimeout(() => {
-      locationCheck = true
-    }, 60000)
-
     const app = express()
     if (!started) {
       started = true
@@ -40,9 +36,22 @@ module.exports = {
       viewDistance: 'tiny'
     })
 
+    setTimeout(() => {
+      locationCheck = true
+    }, 120000) //2 mins
+
     setInterval(() => {
       bot.chat('/locraw')
-    }, 30000)
+    }, 90000) // 1 min 30 sec
+
+    setInterval(() => {
+      locationCheck = false
+      setTimeout(() => {
+        locationCheck = true
+      }, 60000) //1 min
+
+      visitIsland(bot, true)
+    }, 3600000) //1 hour
 
     bot._client.on('transaction', function(packet) {
       packet.accepted = true
@@ -64,6 +73,7 @@ module.exports = {
         interaction.editReply(`${bot.username} online!`)
       }
       visitIsland(bot, false)
+      console.log('spawn visit')
     })
 
     bot.on('kicked', (kicked, loggedIn) => {
@@ -71,6 +81,10 @@ module.exports = {
       if (!loggedIn) {
         process.exit()
       }
+    })
+
+    bot.on('chat', (username, message) => {
+      console.log({user: username, message: message})
     })
 
     bot.on('message', async (msg) => {
@@ -96,7 +110,7 @@ module.exports = {
                   in_party = false
                   bot.chat('/p leave')
                   return
-                }, 10000)
+                }, 10000) //10 sec
               }
             }
           }
@@ -106,9 +120,9 @@ module.exports = {
       //stay on island
       if(msg.text.toLowerCase().includes('server') && msg.color === 'white' && locationCheck) {
         const obj = JSON.parse(msg.text)
-        if(obj.gametype !== 'SKYBLOCK') {
+        if(!obj.gametype.toLowerCase().includes('skybl')) {
           visitIsland(bot, true)
-        } else {
+        } else if(obj.gametype.toLowerCase().includes('skybl') && obj.map !== 'Private Island') {
           visitIsland(bot, false)
         }
       }
@@ -118,15 +132,20 @@ module.exports = {
 
 async function visitIsland(bot, inSkyblock) {
   if(!inSkyblock) {
+    await sleep(10000)
     await bot.chat('/l')
     await sleep(10000)
     await bot.chat('/play sb')
     await sleep(10000)
   }
+  if(inSkyblock) {
+    await sleep(10000)
+    await bot.chat('/hub')
+  }
+  await sleep(10000)
   await bot.chat('/visit BaltrazYT')
   await sleep(10000)
-  await bot.simpleClick.leftMouse(11)
-  console.log('penis yes')
+  bot.simpleClick.leftMouse(11)
   dclient.channels.cache.get('925804248908828692').send({
     content: `Reached AFK Pool. <t:${(Date.now() / 1000).toFixed()}:f>`
   })
