@@ -38,9 +38,17 @@ client.options.http.api = 'https://discordapp.com/api'
 process.on('warning', e => console.warn(e.stack));
 //client.on('debug', console.log)
 
-
+//Fragbot stuff
 global.fragbotstate = true
 
 if(fragbotstate) {
   client.slashcommands.get('fragbot').execute()
+}
+
+//nono crash
+try {
+process.on('uncaughtException', error => console.log(error))
+process.on('unhandledRejection', error => console.log(error))
+} catch (e) {
+  console.log(e)
 }

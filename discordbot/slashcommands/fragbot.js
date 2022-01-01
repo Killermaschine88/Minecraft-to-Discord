@@ -115,10 +115,8 @@ module.exports = {
       //stay on island
       if(msg.text.toLowerCase().includes('server') && msg.color === 'white' && locationCheck) {
         const obj = JSON.parse(msg.text)
-        if(!obj.gametype.toLowerCase().includes('skybl')) {
-          visitIsland(bot, true)
-        } else if(obj.gametype.toLowerCase().includes('skybl') && obj.map !== 'Private Island') {
-          visitIsland(bot, false)
+        if(!obj?.gametype.includes('SKYBL')) {
+          visitIsland(bot)
         }
       }
     })
@@ -126,17 +124,12 @@ module.exports = {
 }
 
 async function visitIsland(bot, inSkyblock) {
-  if(!inSkyblock) {
-    await sleep(10000)
-    await bot.chat('/l')
-    await sleep(10000)
-    await bot.chat('/play sb')
-    await sleep(10000)
-  }
-  if(inSkyblock) {
-    await sleep(10000)
-    await bot.chat('/hub')
-  }
+  await sleep(10000)
+  await bot.chat('/l')
+  await sleep(10000)
+  await bot.chat('/play sb')
+  await sleep(10000)
+  await bot.chat('/hub')
   await sleep(10000)
   await bot.chat('/visit BaltrazYT')
   await sleep(10000)
