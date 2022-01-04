@@ -12,5 +12,17 @@ module.exports = {
       message.channel.send(`**${message.content}** added.`)
       message.delete()
     }
+
+    //testing
+    /*const discordTranscripts = require('discord-html-transcripts');
+
+const channel = message.channel; // or however you get your TextChannel
+
+// Must be awaited
+const attachment = await discordTranscripts.createTranscript(channel);
+
+channel.send({
+    files: [attachment]
+});*/
   }
 }

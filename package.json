@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "discord-html-transcripts": "^1.1.2",
     "discord.js": "^13.3.1",
     "dotenv": "^10.0.0",
     "minecraft-data": "^2.98.0",
