@@ -13,16 +13,6 @@ module.exports = {
       message.delete()
     }
 
-    //testing
-    /*const discordTranscripts = require('discord-html-transcripts');
-
-const channel = message.channel; // or however you get your TextChannel
-
-// Must be awaited
-const attachment = await discordTranscripts.createTranscript(channel);
-
-channel.send({
-    files: [attachment]
-});*/
+    //add removeing people from array
   }
 }

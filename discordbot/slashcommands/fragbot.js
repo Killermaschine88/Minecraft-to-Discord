@@ -13,7 +13,8 @@ module.exports = {
       interaction.editReply('starting . . .')
     }
 
-    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken', 'kofmel', 'rosebloom', 'inactivenub']
+    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken', 'kofmel', 'rosebloom', 'inactivenub', 'bongobenger'
+                           ]
     let sent = false
     let in_party = false
     let locationCheck = false
@@ -72,7 +73,7 @@ module.exports = {
       if (!fragbotstate) {
         interaction.editReply(`${bot.username} online!`)
       }
-      visitIsland(bot, false)
+      visitIsland(bot)
     })
 
     bot.on('kicked', (kicked, loggedIn) => {
@@ -85,7 +86,7 @@ module.exports = {
     bot.on('message', async (msg) => {
       //Visiting Island if warped to Limbo
       if (msg.text.includes('You are AFK.')) {
-        visitIsland(bot, false)
+        visitIsland(bot)
         return
       }
 
