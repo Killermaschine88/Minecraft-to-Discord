@@ -13,7 +13,7 @@ module.exports = {
       interaction.editReply('starting . . .')
     }
 
-    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken', 'kofmel', 'rosebloom', 'inactivenub', 'bongobenger', "BlackBlizzard_", "vedatsgt"]
+    global.allowed_names = ['baltrazyt', 'itsj4s0n', 'altpapier', 'mattthecuber', 'skyrats', 'f0kiwastaken', 'kofmel', 'rosebloom', 'inactivenub', 'bongoberger', "BlackBlizzard_", "vedatsgt", "agent_thanos", "unraisedpanda37", '2nfgdupingalt']
     let sent = false
     let in_party = false
     let locationCheck = false
@@ -29,7 +29,7 @@ module.exports = {
     })
 
     const bot = mineflayer.createBot({
-      host: 'hypixel.net',
+      host: 'stuck.hypixel.net',
       username: process.env.MINECRAFT_EMAIL,
       password: process.env.MINECRAFT_PASSWORD,
       version: "1.8.9",
@@ -83,6 +83,8 @@ module.exports = {
     })
 
     bot.on('message', async (msg) => {
+      if(msg.toString().includes('Mana')) return;
+      console.log(msg.toString())
       //Visiting Island if warped to Limbo
       if (msg.text.includes('You are AFK.')) {
         visitIsland(bot)
@@ -115,7 +117,7 @@ module.exports = {
       //stay on island
       if(msg.text.toLowerCase().includes('server') && msg.color === 'white' && locationCheck) {
         const obj = JSON.parse(msg.text)
-        if(!obj?.gametype.includes('SKYBL')) {
+        if(!obj?.gametype?.includes('SKYBL')) {
           visitIsland(bot)
         }
       }
